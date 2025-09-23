@@ -6,7 +6,7 @@ from typing import Optional, cast, Dict, Any
 class AirportRepository:
     @staticmethod
     def get_airport_by_name(name: str) -> Optional[Airport]:
-        sql = "SELECT ident, name, iso_country, latitude_deg AS lat, longitude_deg AS lon FROM airport where name LIKE  Concat('%', %s,'%')"
+        sql = "SELECT ident, name, iso_country, latitude_deg AS lat, longitude_deg AS lon FROM airport where name LIKE Concat('%', %s,'%')"
         with get_connection() as conn:
             cur = conn.cursor(dictionary=True)
             cur.execute(sql, (name,))

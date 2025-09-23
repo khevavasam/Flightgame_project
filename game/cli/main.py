@@ -2,12 +2,33 @@ from game.core.game import Game
 
 
 def main():
-    game = Game()
+    g = Game()
+    g.start()
 
-    while game.is_running():
-        command = input("Enter airport name: ")
-        if command == "exit":
-            game.exit_game()
+    # Main loop
+    while g.is_running():
+        st = g.status()
+        print(f"Current location: {st['name']} ({st['icao']}) - hops: {st['hops']}, total km: {st['km_total']} km")
+        opts = g.options()
+        for i, (a, d) in enumerate(opts, start=1):
+            print(f"{i}. {a.name} ({a.icao}) - {d:.0f} km")
+
+        print("\nCommands: enter option number to fly, 'i' to refresh, 'q' or 'exit' to quit.")
+        cmd = input("> ").strip().lower()
+
+        if cmd in ("q", "exit"):
+            g.exit_game()
+            print("Goodbye - game ended.")
             break
-        result = game.get_airport_by_name(command)
-        print(result)
+
+        if cmd == "i" or cmd == "":
+            continue
+
+        if cmd.isdigit():
+            idx = int(cmd)
+            if 1 <= idx <= len(opts):
+                chosen = g.pick(idx)
+                print(f"Flying to {chosen.name} ({chosen.icao})...\n")
+                continue
+
+        print("Invalid command, try again.\n")

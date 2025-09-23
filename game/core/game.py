@@ -1,14 +1,68 @@
+from __future__ import annotations
+from typing import List, Tuple, Optional
+from geopy.distance import geodesic
 from game.db import AirportRepository
+from game.core import Airport
 
 
 class Game:
+    START_ICAO = "EFHK"
+    COUNTRY = "FI"
+
     def __init__(self) -> None:
-        self.running = True
+        self.running: bool = True
+        self.current: Optional[Airport] = None
+        self.km_total: float = 0.0
+        self.hops: int = 0
+        self._airports: List[Airport] = []
+        self._last_options: List[Tuple[Airport, float]] = []
 
-    def get_airport_by_name(self, name: str):
-        return AirportRepository.get_airport_by_name(name) if not None else ""
+    def start(self) -> None:
+        self.current = AirportRepository.get_by_icao(self.START_ICAO)
+        if not self.current:
+            raise RuntimeError("Start airport EFHK not found in DB")
+        self._airports = AirportRepository.list_airports(country=self.COUNTRY)
+        self.km_total = 0.0
+        self.hops = 0
+        self._last_options = []
 
-    def exit_game(self):
+    def status(self) -> dict:
+        cur = self.current
+        return {
+            "icao": cur.icao if cur else None,
+            "name": cur.name if cur else None,
+            "country": cur.country if cur else None,
+            "km_total": int(round(self.km_total)),
+            "hops": self.hops,
+        }
+
+    def options(self, limit: int = 5) -> List[Tuple[Airport, float]]:
+        assert self.current is not None, "Game not started. Call start()."
+        cur = self.current
+        pairs: List[Tuple[Airport, float]] = []
+        for a in self._airports:
+            if a.icao == cur.icao:
+                continue
+            # geodesic returns an object with .km
+            dist_km = geodesic((cur.lat, cur.lon), (a.lat, a.lon)).km
+            pairs.append((a, dist_km))
+        pairs.sort(key=lambda t: t[1])
+        self._last_options = pairs[:limit]
+        return self._last_options
+
+    def pick(self, index: int) -> Optional[Airport]:
+        if not (1 <= index <= len(self._last_options)):
+            return None
+        chosen, dist = self._last_options[index - 1]
+        self.km_total += dist
+        self.hops += 1
+        self.current = chosen
+        return chosen
+
+    def get_airport_by_name(self, name: str) -> Optional[Airport]:
+        return AirportRepository.get_airport_by_name(name)
+
+    def exit_game(self) -> None:
         self.running = False
 
     def is_running(self) -> bool:

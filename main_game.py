@@ -2,7 +2,7 @@ import mysql.connector
 
 # Constants.
 DB_CONFIG = {
-    "user": "",
+    "user": "",  # Lisää käyttäjä ja password manuaalisesti ja vältä puskemista githubiin..
     "password": "",
     "host": "127.0.0.1",
     "port": 3306,
@@ -17,7 +17,7 @@ DB_CONFIG = {
 def get_airport_by_name(name: str):
     connection = mysql.connector.connect(**DB_CONFIG)
     cursor = connection.cursor()
-    sql = "SELECT ident, name, iso_country, latitude_deg AS lat, longitude_deg AS lon FROM airport where name LIKE Concat('%', %s,'%')"
+    sql = "SELECT ident, name, iso_country, latitude_deg AS lat, longitude_deg AS lon FROM airport where name LIKE Concat('%', %s, '%')"
     cursor.execute(sql, (name,))
     row = cursor.fetchone()
     connection.close()

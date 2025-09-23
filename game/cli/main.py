@@ -8,12 +8,16 @@ def main():
     # Main loop
     while g.is_running():
         st = g.status()
-        print(f"Current location: {st['name']} ({st['icao']}) - hops: {st['hops']}, total km: {st['km_total']} km")
+        print(
+            f"Current location: {st['name']} ({st['icao']}) - hops: {st['hops']}, total km: {st['km_total']} km"
+        )
         opts = g.options()
         for i, (a, d) in enumerate(opts, start=1):
             print(f"{i}. {a.name} ({a.icao}) - {d:.0f} km")
 
-        print("\nCommands: enter option number to fly, 'i' to refresh, 'q' or 'exit' to quit.")
+        print(
+            "\nCommands: enter option number to fly, 'i' to refresh, 'q' or 'exit' to quit."
+        )
         cmd = input("> ").strip().lower()
 
         if cmd in ("q", "exit"):

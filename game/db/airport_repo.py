@@ -14,10 +14,8 @@ def _row_to_airport(row: Dict[str, Any]) -> Airport:
 
 
 class AirportRepository:
-
     @staticmethod
     def get_by_icao(icao: str) -> Optional[Airport]:
-
         sql = """
             SELECT ident, name, iso_country, latitude_deg AS lat, longitude_deg AS lon
             FROM airport
@@ -33,9 +31,12 @@ class AirportRepository:
     @staticmethod
     def list_airports(
         country: str = "FI",
-        allow_types: Sequence[str] = ("small_airport", "medium_airport", "large_airport"),
+        allow_types: Sequence[str] = (
+            "small_airport",
+            "medium_airport",
+            "large_airport",
+        ),
     ) -> List[Airport]:
-
         placeholders = ",".join(["%s"] * len(allow_types))
         sql = f"""
             SELECT ident, name, iso_country, latitude_deg AS lat, longitude_deg AS lon

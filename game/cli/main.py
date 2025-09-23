@@ -1,4 +1,4 @@
-from game.core.game import Game
+from game.core import Game
 
 
 def main():
@@ -32,7 +32,7 @@ def main():
             idx = int(cmd)
             if 1 <= idx <= len(opts):
                 chosen = g.pick(idx)
-                print(f"Flying to {chosen.name} ({chosen.icao})...\n")
+                print(f"Flying to {chosen.name} ({chosen.icao})...\n")  # type: ignore
                 continue
 
         print("Invalid command, try again.\n")

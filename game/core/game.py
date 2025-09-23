@@ -59,9 +59,6 @@ class Game:
         self.current = chosen
         return chosen
 
-    def get_airport_by_name(self, name: str) -> Optional[Airport]:
-        return AirportRepository.get_airport_by_name(name)
-
     def exit_game(self) -> None:
         self.running = False
 

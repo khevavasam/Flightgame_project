@@ -9,8 +9,9 @@ def main():
     while g.is_running():
         st = g.status()
         print(
-            f"Current location: {st['name']} ({st['icao']}) - hops: {st['hops']}, total km: {st['km_total']} km"
+            f"Current location: {st['name']} ({st['icao']}) - hops: {st['hops']}, total km: {st['km_total']} km, fuel: {st['fuel']} litres"
         )
+        print()
         opts = g.options()
         for i, (a, d) in enumerate(opts, start=1):
             print(f"{i}. {a.name} ({a.icao}) - {d:.0f} km")
@@ -32,7 +33,9 @@ def main():
             idx = int(cmd)
             if 1 <= idx <= len(opts):
                 chosen = g.pick(idx)
-                print(f"Flying to {chosen.name} ({chosen.icao})...\n")  # type: ignore
+                print(f"\n>>> Flying to {chosen.name} ({chosen.icao}) >>>")  # type: ignore
+                # Print weather event 'radio message' and fuel consumed.
+                print(g._last_weather_msg + "\n")
                 continue
 
         print("Invalid command, try again.\n")

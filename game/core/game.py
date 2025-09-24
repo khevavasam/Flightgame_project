@@ -2,7 +2,8 @@ from __future__ import annotations
 from typing import List, Tuple, Optional
 from geopy.distance import geodesic
 from game.db import AirportRepository
-from game.core import Airport
+from game.core import Airport, WeatherEvent, WeatherType
+import random
 
 
 class Game:
@@ -14,8 +15,12 @@ class Game:
         self.current: Optional[Airport] = None
         self.km_total: float = 0.0
         self.hops: int = 0
+        self.resources = {
+            "gasoline": 100.0
+        }  # placeholder for now.. We could have a proper game state.
         self._airports: List[Airport] = []
         self._last_options: List[Tuple[Airport, float]] = []
+        self._last_weather_msg = ""
 
     def start(self) -> None:
         self.current = AirportRepository.get_by_icao(self.START_ICAO)
@@ -57,6 +62,19 @@ class Game:
         self.km_total += dist
         self.hops += 1
         self.current = chosen
+
+        # Temp gasoline consumption
+        base_consumption = (
+            10.0  # 10 units/litres for now. This should be calculated from distance.
+        )
+        event = WeatherEvent(random.choice(list(WeatherType)))
+        radio_msg = event.trigger()
+        modifier = event.fuel_modifier()
+        total_usage = base_consumption * (1 + modifier)
+        self.resources["gasoline"] -= total_usage
+        # Save weather event msg for cli to print.
+        self._last_weather_msg = f"{radio_msg} (Fuel used: {total_usage:.1f} L)"
+
         return chosen
 
     def exit_game(self) -> None:

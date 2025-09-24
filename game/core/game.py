@@ -17,7 +17,7 @@ class Game:
         self.current: Optional[Airport] = None
         self.km_total: float = 0.0
         self.hops: int = 0
-        self.resources = {"fuel": self.START_FUEL}
+        self.resources = {"fuel": 0.0}
         self._airports: List[Airport] = []
         self._last_options: List[Tuple[Airport, float]] = []
         self._last_weather_msg = ""
@@ -29,6 +29,7 @@ class Game:
         self._airports = AirportRepository.list_airports(country=self.COUNTRY)
         self.km_total = 0.0
         self.hops = 0
+        self.resources["fuel"] = self.START_FUEL
         self._last_options = []
 
     def status(self) -> dict:

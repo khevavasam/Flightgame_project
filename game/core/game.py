@@ -75,7 +75,7 @@ class Game:
         total_usage = base_consumption * (1 + modifier)
         self.resources["fuel"] -= total_usage
         # Save weather event msg for cli to print.
-        self._last_weather_msg = f"{radio_msg} (Fuel used: {total_usage:.1f} L)"
+        self._last_weather_msg = f"{radio_msg} (Fuel used: {total_usage:.1f} litres)"
 
         return chosen
 

@@ -38,7 +38,7 @@ class WeatherEvent(GameEvent):
         ],
         WeatherType.RAIN: [
             "Rainy skies ahead, runways may be slippery.",
-            "Wet conditions excpected, maintain caution!",
+            "Wet conditions expected, maintain caution!",
         ],
         WeatherType.SNOW: [
             "Snow is falling, watch out for those icy runways!",

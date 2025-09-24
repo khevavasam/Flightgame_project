@@ -14,7 +14,7 @@ class GameEvent(ABC):
 
     @abstractmethod
     def trigger(self) -> str:
-        print(self.description())
+        pass
 
 
 class WeatherType(Enum):

@@ -2,7 +2,8 @@ from __future__ import annotations
 from typing import List, Tuple, Optional
 from geopy.distance import geodesic
 from game.db import AirportRepository
-from game.core import Airport, WeatherEvent, WeatherType
+from game.core import Airport
+from .events.game_event import WeatherEvent, WeatherType
 import random
 
 

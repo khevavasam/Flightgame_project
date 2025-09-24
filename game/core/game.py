@@ -16,9 +16,7 @@ class Game:
         self.current: Optional[Airport] = None
         self.km_total: float = 0.0
         self.hops: int = 0
-        self.resources = {
-            "gasoline": 100.0
-        }  # placeholder for now.. We could have a proper game state.
+        self.resources = {"fuel": 100.0}
         self._airports: List[Airport] = []
         self._last_options: List[Tuple[Airport, float]] = []
         self._last_weather_msg = ""
@@ -40,6 +38,7 @@ class Game:
             "country": cur.country if cur else None,
             "km_total": int(round(self.km_total)),
             "hops": self.hops,
+            "fuel": self.resources["fuel"],
         }
 
     def options(self, limit: int = 5) -> List[Tuple[Airport, float]]:
@@ -64,7 +63,7 @@ class Game:
         self.hops += 1
         self.current = chosen
 
-        # Temp gasoline consumption
+        # Temp fuel consumption
         base_consumption = (
             10.0  # 10 units/litres for now. This should be calculated from distance.
         )
@@ -72,7 +71,7 @@ class Game:
         radio_msg = event.trigger()
         modifier = event.fuel_modifier()
         total_usage = base_consumption * (1 + modifier)
-        self.resources["gasoline"] -= total_usage
+        self.resources["fuel"] -= total_usage
         # Save weather event msg for cli to print.
         self._last_weather_msg = f"{radio_msg} (Fuel used: {total_usage:.1f} L)"
 

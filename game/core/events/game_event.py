@@ -46,7 +46,7 @@ class WeatherEvent(GameEvent):
         ],
     }
 
-    # Gasoline consumption modifiers
+    # fuel consumption modifiers
     _modifiers = {
         WeatherType.CLEAR: 0.0,
         WeatherType.STORM: 0.10,
@@ -66,7 +66,3 @@ class WeatherEvent(GameEvent):
 
     def fuel_modifier(self) -> float:
         return self._modifiers[self.weather_type]
-
-
-def random_weather_event() -> GameEvent:
-    return WeatherEvent(random.choice(list(WeatherType)))

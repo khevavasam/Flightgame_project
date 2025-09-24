@@ -9,7 +9,7 @@ def main():
     while g.is_running():
         st = g.status()
         print(
-            f"Current location: {st['name']} ({st['icao']}) - hops: {st['hops']}, total km: {st['km_total']} km, gas: {g.resources['gasoline']}/100.0"
+            f"Current location: {st['name']} ({st['icao']}) - hops: {st['hops']}, total km: {st['km_total']} km, fuel: {st['fuel']} litres"
         )
         print()
         opts = g.options()
@@ -34,7 +34,7 @@ def main():
             if 1 <= idx <= len(opts):
                 chosen = g.pick(idx)
                 print(f"\n>>> Flying to {chosen.name} ({chosen.icao}) >>>")  # type: ignore
-                # Print weather event 'radio message' and gasoline consumed.
+                # Print weather event 'radio message' and fuel consumed.
                 print(g._last_weather_msg + "\n")
                 continue
 

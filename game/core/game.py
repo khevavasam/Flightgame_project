@@ -10,13 +10,14 @@ import random
 class Game:
     START_ICAO = "EFHK"
     COUNTRY = "FI"
+    START_FUEL: float = 100.0
 
     def __init__(self) -> None:
         self.running: bool = True
         self.current: Optional[Airport] = None
         self.km_total: float = 0.0
         self.hops: int = 0
-        self.resources = {"fuel": 100.0}
+        self.resources = {"fuel": self.START_FUEL}
         self._airports: List[Airport] = []
         self._last_options: List[Tuple[Airport, float]] = []
         self._last_weather_msg = ""

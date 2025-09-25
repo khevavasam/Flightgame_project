@@ -29,7 +29,7 @@ game/
 - **Python** 3.9.13
 - **MariaDB** server (or MySQL compatible)
 - **pip** (comes with Python) for installing dependencies
-- Optional: a virtual environment tool such as
+- **Optional**: a virtual environment tool such as
   - `venv` (built into Python)
 
 ## Setup
@@ -56,7 +56,7 @@ venv\Scripts\activate         # Windows
 pip install -r requirements.txt
 ```
 
-4. **Copy .env.template and rename it to .env in project root**
+4. **Copy .env.template and rename it to .env in the project root**
 
 ```bash
 # Fill your personal database info into .env

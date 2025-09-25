@@ -34,8 +34,9 @@ def main():
             if 1 <= idx <= len(opts):
                 chosen = g.pick(idx)
                 print(f"\n>>> Flying to {chosen.name} ({chosen.icao}) >>>")  # type: ignore
-                # Weather event triggers in every pick so print the msg here.
-                print(g._last_weather_msg + "\n")
+                # Print all event msgs here.
+                for event_msg in g._event_messages:
+                    print(event_msg)
                 continue
 
         print("Invalid command, try again.\n")

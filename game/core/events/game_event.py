@@ -13,7 +13,7 @@ class GameEvent(ABC):
         pass
 
     @abstractmethod
-    def trigger(self) -> str:
+    def trigger(self, game) -> str:
         pass
 
 
@@ -59,10 +59,18 @@ class WeatherEvent(GameEvent):
 
     def description(self) -> str:
         random_msg = random.choice(self._messages[self.weather_type])
-        return f"[RADIO]: {random_msg}"
+        return f"WEATHER UPDATE: {self.weather_type.name.capitalize()}\n[RADIO]: {random_msg}"
 
-    def trigger(self) -> str:
-        return self.description()
+    def trigger(self, game) -> str:
+        # Temp fuel consumption
+        base_consumption = (
+            10.0  # 10 units/litres for now. This should be calculated from distance.
+        )
+        total_usage = base_consumption * (1 + self._modifiers[self.weather_type])
+        game.resources["fuel"] -= total_usage
+        # Save weather event msg for cli to print.
+        return f"(Fuel used: {total_usage:.1f} litres)"
 
-    def fuel_modifier(self) -> float:
-        return self._modifiers[self.weather_type]
+
+def get_weather_event() -> GameEvent:
+    return WeatherEvent(random.choice(list(WeatherType)))

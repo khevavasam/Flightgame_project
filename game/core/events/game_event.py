@@ -69,13 +69,25 @@ class WeatherEvent(GameEvent):
         total_usage = base_consumption * (1 + self._modifiers[self.weather_type])
         game.resources["fuel"] -= total_usage
         # Save weather event msg for cli to print.
-        game._last_weather_msg = (
+        game._event_messages.append(
             f"{self.description()}\n(Fuel used: {total_usage:.1f} litres)"
         )
 
 
+class UnionStrikeEvent(GameEvent):
+    def description(self) -> str:
+        return "\n<<[UNION STRIKE]: FLY TO NEAREST AVAILABLE AIRPORT!>>\n"
+
+    def trigger(self, game):
+        game._event_messages.append(f"{self.description()}")
+        # Here we should handle or trigger game redirect
+
+
 def get_random_events() -> list[GameEvent]:
+    # Clear old event messages
     events = []
     events.append(WeatherEvent(random.choice(list(WeatherType))))
     # Here we can add more events later..
+    if random.randint(1, 10) > 5:
+        events.append(UnionStrikeEvent())
     return events

@@ -19,7 +19,7 @@ class Game:
         self.resources = {"fuel": 0.0}
         self._airports: List[Airport] = []
         self._last_options: List[Tuple[Airport, float]] = []
-        self._last_weather_msg = ""
+        self._event_messages = []
 
     def start(self) -> None:
         self.current = AirportRepository.get_by_icao(self.START_ICAO)
@@ -30,6 +30,7 @@ class Game:
         self.hops = 0
         self.resources["fuel"] = self.START_FUEL
         self._last_options = []
+        self._event_messages.clear()
 
     def status(self) -> dict:
         cur = self.current
@@ -65,6 +66,7 @@ class Game:
         self.current = chosen
 
         # Handle all returned game events
+        self._event_messages.clear()
         events = get_random_events()
         for event in events:
             event.trigger(self)

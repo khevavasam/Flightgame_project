@@ -3,7 +3,7 @@ from typing import List, Tuple, Optional
 from geopy.distance import geodesic
 from game.db import AirportRepository
 from game.core import Airport
-from .events.game_event import get_weather_event
+from .events.game_event import get_random_events
 
 
 class Game:
@@ -63,10 +63,12 @@ class Game:
         self.km_total += dist
         self.hops += 1
         self.current = chosen
-        weather_event = get_weather_event()
-        event_desc = weather_event.description()
-        fuel_msg = weather_event.trigger(self)
-        self._last_weather_msg = f"{event_desc}\n{fuel_msg}"
+
+        # Handle all returned game events
+        events = get_random_events()
+        for event in events:
+            event.trigger(self)
+
         return chosen
 
     def exit_game(self) -> None:

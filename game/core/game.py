@@ -3,8 +3,7 @@ from typing import List, Tuple, Optional
 from geopy.distance import geodesic
 from game.db import AirportRepository
 from game.core import Airport
-from .events.game_event import WeatherEvent, WeatherType
-import random
+from .events.game_event import get_random_events
 
 
 class Game:
@@ -65,17 +64,10 @@ class Game:
         self.hops += 1
         self.current = chosen
 
-        # Temp fuel consumption
-        base_consumption = (
-            10.0  # 10 units/litres for now. This should be calculated from distance.
-        )
-        event = WeatherEvent(random.choice(list(WeatherType)))
-        radio_msg = event.trigger()
-        modifier = event.fuel_modifier()
-        total_usage = base_consumption * (1 + modifier)
-        self.resources["fuel"] -= total_usage
-        # Save weather event msg for cli to print.
-        self._last_weather_msg = f"{radio_msg} (Fuel used: {total_usage:.1f} litres)"
+        # Handle all returned game events
+        events = get_random_events()
+        for event in events:
+            event.trigger(self)
 
         return chosen
 

@@ -73,7 +73,7 @@ DB_PORT=3306
 From project root:
 
 ```bash
-python -m cli.main
+python -m game.cli
 ```
 
 ## Authors

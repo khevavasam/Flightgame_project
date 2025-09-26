@@ -43,6 +43,7 @@ class Game:
 
         # Issue the first quest
         self._issue_new_quest()
+
     def status(self) -> dict:
         cur = self.current
         return {
@@ -53,7 +54,9 @@ class Game:
             "hops": self.hops,
             "fuel": self.resources["fuel"],
             # quest-related
-            "quest_target": self.quest_active.target_icao if self.quest_active else None,
+            "quest_target": self.quest_active.target_icao
+            if self.quest_active
+            else None,
             "quest_distance": self.remaining_distance_to_target(),
             "points": self.points,
             "system_msg": self._system_msg,
@@ -116,7 +119,7 @@ class Game:
     def is_running(self) -> bool:
         return self.running
 
-    #Quest Helpers
+    # Quest Helpers
     def _issue_new_quest(self) -> None:
         import random
 
@@ -140,6 +143,9 @@ class Game:
                 return a
         return None
 
+    def get_airports(self) -> List[Airport]:
+        return self._airports
+
     def get_target_airport(self) -> Optional[Airport]:
         return self._get_target_airport()
 
@@ -150,7 +156,9 @@ class Game:
         target = self._get_target_airport()
         if not target:
             return None
-        dist_km = geodesic((self.current.lat, self.current.lon), (target.lat, target.lon)).km
+        dist_km = geodesic(
+            (self.current.lat, self.current.lon), (target.lat, target.lon)
+        ).km
         return int(round(dist_km))
 
     # Messaging for events

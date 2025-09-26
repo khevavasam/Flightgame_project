@@ -21,6 +21,7 @@ game/
 ├─ cli/       # for player interaction
 ├─ core/      # contains all game logic
 ├─ db/        # database queries and repositories
+├─ utils/     # common helpers
 └─ config.py  # project-level configuration (loads .env)
 ```
 

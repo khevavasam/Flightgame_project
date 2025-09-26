@@ -1,19 +1,20 @@
 from game.core import Game
 from geopy.distance import geodesic
+from .renderer import Renderer
 
 
 def main():
+    renderer = Renderer()
     g = Game()
     g.start()
 
     # Main loop
     while g.is_running():
+        renderer.enter_to_continue()
+        renderer.clear_console()
         st = g.status()
         # Status + quest + points + system messages
-        print(
-            f"Current location: {st['name']} ({st['icao']}) - "
-            f"hops: {st['hops']}, total km: {st['km_total']} km, fuel: {st['fuel']} litres"
-        )
+        print(renderer.draw_game_status(st))
         if st.get("quest_target"):
             qdist = st.get("quest_distance")
             print(f"Active Quest: Fly to {st['quest_target']} - remaining: {qdist} km")
@@ -37,7 +38,11 @@ def main():
                     (a.lat, a.lon), (target_airport.lat, target_airport.lon)
                 ).km
                 delta = cur_to_target_km - int(round(dist_next))
-                mark = "++" if delta >= 25 else ("+" if delta >= 5 else ("−" if delta < 0 else "·"))
+                mark = (
+                    "++"
+                    if delta >= 25
+                    else ("+" if delta >= 5 else ("−" if delta < 0 else "·"))
+                )
                 line += f"  → Δdist: {delta:+d} km  {mark}"
                 if best_delta is None or delta > best_delta:
                     best_delta = delta
@@ -46,7 +51,9 @@ def main():
 
         if best_idx is not None and best_delta is not None and best_delta > 0:
             best_airport = opts[best_idx - 1][0]
-            print(f"\nRecommended next hop: {best_idx}) {best_airport.icao} — cuts {best_delta} km")
+            print(
+                f"\nRecommended next hop: {best_idx}) {best_airport.icao} — cuts {best_delta} km"
+            )
 
         print(
             "\nCommands: enter option number to fly, "
@@ -60,10 +67,13 @@ def main():
             break
 
         if cmd == "quests":
+            renderer.clear_console()
             print("\nQuest Log")
             if g.quest_active:
                 rem = g.remaining_distance_to_target()
-                print(f"Active:\n- Fly to {g.quest_active.target_icao} — {rem} km remaining")
+                print(
+                    f"Active:\n- Fly to {g.quest_active.target_icao} — {rem} km remaining"
+                )
             else:
                 print("Active:\n- None")
             if g.quest_completed:
@@ -73,6 +83,13 @@ def main():
             else:
                 print("\nCompleted:\n- None")
             print(f"\nTotal points: {g.points}\n")
+            continue
+
+        if cmd.lower() == "map":
+            renderer.clear_console()
+            print(
+                renderer.draw_map(g.current, g.get_target_airport(), g.get_airports())
+            )
             continue
 
         if cmd == "i" or cmd == "":

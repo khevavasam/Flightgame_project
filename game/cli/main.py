@@ -1,13 +1,20 @@
 from game.core import Game
 from geopy.distance import geodesic
+from .renderer import Renderer
+
+
+def _enter_to_continue():
+    return input("Press enter to continue...")
 
 
 def main():
+    renderer = Renderer()
     g = Game()
     g.start()
 
     # Main loop
     while g.is_running():
+        renderer.clear_console()
         st = g.status()
         # Status + quest + points + system messages
         print(
@@ -37,7 +44,11 @@ def main():
                     (a.lat, a.lon), (target_airport.lat, target_airport.lon)
                 ).km
                 delta = cur_to_target_km - int(round(dist_next))
-                mark = "++" if delta >= 25 else ("+" if delta >= 5 else ("−" if delta < 0 else "·"))
+                mark = (
+                    "++"
+                    if delta >= 25
+                    else ("+" if delta >= 5 else ("−" if delta < 0 else "·"))
+                )
                 line += f"  → Δdist: {delta:+d} km  {mark}"
                 if best_delta is None or delta > best_delta:
                     best_delta = delta
@@ -46,7 +57,9 @@ def main():
 
         if best_idx is not None and best_delta is not None and best_delta > 0:
             best_airport = opts[best_idx - 1][0]
-            print(f"\nRecommended next hop: {best_idx}) {best_airport.icao} — cuts {best_delta} km")
+            print(
+                f"\nRecommended next hop: {best_idx}) {best_airport.icao} — cuts {best_delta} km"
+            )
 
         print(
             "\nCommands: enter option number to fly, "
@@ -60,10 +73,13 @@ def main():
             break
 
         if cmd == "quests":
+            renderer.clear_console()
             print("\nQuest Log")
             if g.quest_active:
                 rem = g.remaining_distance_to_target()
-                print(f"Active:\n- Fly to {g.quest_active.target_icao} — {rem} km remaining")
+                print(
+                    f"Active:\n- Fly to {g.quest_active.target_icao} — {rem} km remaining"
+                )
             else:
                 print("Active:\n- None")
             if g.quest_completed:
@@ -73,6 +89,13 @@ def main():
             else:
                 print("\nCompleted:\n- None")
             print(f"\nTotal points: {g.points}\n")
+            _enter_to_continue()
+            continue
+
+        if cmd.lower() == "map":
+            renderer.clear_console()
+            print(renderer.draw_map(g.current, g.get_target_airport(), g._airports))
+            _enter_to_continue()
             continue
 
         if cmd == "i" or cmd == "":
@@ -89,6 +112,7 @@ def main():
                 if st_after.get("system_msg"):
                     print(st_after["system_msg"])
                 print()
+                _enter_to_continue()
                 continue
 
         print("Invalid command, try again.\n")

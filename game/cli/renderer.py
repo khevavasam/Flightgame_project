@@ -10,6 +10,7 @@ class Renderer:
     def __init__(self) -> None:
         self.map_width = 40
         self.map_height = 30
+        self.first_loop = True
 
     def _to_grid(self, lat: float, lon: float) -> tuple[int, int]:
         # Horizontal.
@@ -46,3 +47,9 @@ class Renderer:
 
     def clear_console(self):
         print("\033[H\033[J", end="")
+
+    def enter_to_continue(self, input_str: str = "Press Enter to Continue..."):
+        if self.first_loop:
+            self.first_loop = False
+            return ""
+        return input(input_str)

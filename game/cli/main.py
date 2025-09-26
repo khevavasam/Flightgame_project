@@ -3,10 +3,6 @@ from geopy.distance import geodesic
 from .renderer import Renderer
 
 
-def _enter_to_continue():
-    return input("Press enter to continue...")
-
-
 def main():
     renderer = Renderer()
     g = Game()
@@ -14,6 +10,7 @@ def main():
 
     # Main loop
     while g.is_running():
+        renderer.enter_to_continue()
         renderer.clear_console()
         st = g.status()
         # Status + quest + points + system messages
@@ -89,13 +86,11 @@ def main():
             else:
                 print("\nCompleted:\n- None")
             print(f"\nTotal points: {g.points}\n")
-            _enter_to_continue()
             continue
 
         if cmd.lower() == "map":
             renderer.clear_console()
             print(renderer.draw_map(g.current, g.get_target_airport(), g._airports))
-            _enter_to_continue()
             continue
 
         if cmd == "i" or cmd == "":
@@ -112,7 +107,6 @@ def main():
                 if st_after.get("system_msg"):
                     print(st_after["system_msg"])
                 print()
-                _enter_to_continue()
                 continue
 
         print("Invalid command, try again.\n")

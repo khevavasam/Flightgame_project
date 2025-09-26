@@ -87,7 +87,9 @@ def main():
 
         if cmd.lower() == "map":
             renderer.clear_console()
-            print(renderer.draw_map(g.current, g.get_target_airport(), g._airports))
+            print(
+                renderer.draw_map(g.current, g.get_target_airport(), g.get_airports())
+            )
             continue
 
         if cmd == "i" or cmd == "":

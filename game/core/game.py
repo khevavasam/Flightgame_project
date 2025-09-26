@@ -143,6 +143,9 @@ class Game:
                 return a
         return None
 
+    def get_airports(self) -> List[Airport]:
+        return self._airports
+
     def get_target_airport(self) -> Optional[Airport]:
         return self._get_target_airport()
 

@@ -6,6 +6,8 @@ MIN_LAT, MAX_LAT = 59.0, 70.0
 MIN_LON, MAX_LON = 20.0, 32.0
 
 
+# Try to return strings with renderer methods instead of directly printing.
+# This makes unit testing in the future easier...
 class Renderer:
     def __init__(self) -> None:
         self.map_width = 40

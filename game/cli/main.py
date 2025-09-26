@@ -14,10 +14,7 @@ def main():
         renderer.clear_console()
         st = g.status()
         # Status + quest + points + system messages
-        print(
-            f"Current location: {st['name']} ({st['icao']}) - "
-            f"hops: {st['hops']}, total km: {st['km_total']} km, fuel: {st['fuel']} litres"
-        )
+        print(renderer.draw_game_status(st))
         if st.get("quest_target"):
             qdist = st.get("quest_distance")
             print(f"Active Quest: Fly to {st['quest_target']} - remaining: {qdist} km")

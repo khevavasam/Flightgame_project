@@ -2,6 +2,7 @@ from game.core import Game
 from geopy.distance import geodesic
 from .renderer import Renderer
 from game.utils.colors import ok, warn, err, info, dim, bold
+from typing import Optional
 
 
 def main():
@@ -18,7 +19,11 @@ def main():
         print(info(renderer.draw_game_status(st)))
         if st.get("quest_target"):
             qdist = st.get("quest_distance")
-            print(bold(f"Active Quest: Fly to {st['quest_target']} - remaining: {qdist} km"))
+            print(
+                bold(
+                    f"Active Quest: Fly to {st['quest_target']} - remaining: {qdist} km"
+                )
+            )
         print(dim(f"Points: {st.get('points', 0)}"))
         if st.get("system_msg"):
             print(warn(st["system_msg"]))
@@ -32,7 +37,9 @@ def main():
         cur_to_target_km = st.get("quest_distance")
         target_airport = g.get_target_airport() if target_icao else None
 
-        def colorize_line(line_text: str, delta_val: int | None, is_best: bool) -> str:
+        def colorize_line(
+            line_text: str, delta_val: Optional[int], is_best: bool
+        ) -> str:
             if delta_val is None:
                 return dim(line_text)
             if delta_val >= 25:
@@ -49,28 +56,38 @@ def main():
             delta = None
             mark = ""
             if target_airport and cur_to_target_km is not None:
-                dist_next = geodesic((a.lat, a.lon), (target_airport.lat, target_airport.lon)).km
+                dist_next = geodesic(
+                    (a.lat, a.lon), (target_airport.lat, target_airport.lon)
+                ).km
                 delta = cur_to_target_km - int(round(dist_next))
-                mark = "++" if delta >= 25 else ("+" if delta >= 5 else ("−" if delta < 0 else "·"))
+                mark = (
+                    "++"
+                    if delta >= 25
+                    else ("+" if delta >= 5 else ("−" if delta < 0 else "·"))
+                )
                 line += f"  → Δdist: {delta:+d} km  {mark}"
 
                 if best_delta is None or delta > best_delta:
                     best_delta = delta
                     best_idx = i
 
-            is_best = (best_idx == i)
+            is_best = best_idx == i
             print(colorize_line(line, delta, is_best))
 
         if best_idx is not None and best_delta is not None and best_delta > 0:
             best_airport = opts[best_idx - 1][0]
-            print(ok(
-                f"\nRecommended next hop: {best_idx}) {best_airport.icao} — cuts {best_delta} km"
-            ))
+            print(
+                ok(
+                    f"\nRecommended next hop: {best_idx}) {best_airport.icao} — cuts {best_delta} km"
+                )
+            )
 
-        print(dim(
-            "\nCommands: enter option number to fly, "
-            "'quests' to view quest log, 'i' to refresh, 'q' or 'exit' to quit."
-        ))
+        print(
+            dim(
+                "\nCommands: enter option number to fly, "
+                "'quests' to view quest log, 'i' to refresh, 'q' or 'exit' to quit."
+            )
+        )
         cmd = input("> ").strip().lower()
 
         if cmd in ("q", "exit"):
@@ -100,11 +117,13 @@ def main():
         if cmd == "map":
             renderer.clear_console()
 
-            legend = " ".join([
-                f"{dim('*')} airports",
-                f"{bold(info('@'))} you",
-                f"{bold(err('X'))} target",
-            ])
+            legend = " ".join(
+                [
+                    f"{dim('*')} airports",
+                    f"{bold(info('@'))} you",
+                    f"{bold(err('X'))} target",
+                ]
+            )
             print(legend)
 
             raw = renderer.draw_map(g.current, g.get_target_airport(), g.get_airports())

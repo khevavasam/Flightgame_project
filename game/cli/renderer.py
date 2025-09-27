@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List
 from game.utils.math_helpers import clamp, scale_to_index, normalize
 
 # Finland min max coordinates for the map scaling
@@ -27,8 +27,12 @@ class Renderer:
 
         return x, y
 
-    def draw_game_status(self, status: Dict) -> str:
-        return f"Current location: {status['name']} ({status['icao']}) - hops: {status['hops']}, total km: {status['km_total']} km, fuel: {status['fuel']} litres"
+    def draw_game_status(self, status: dict) -> str:
+        return (
+            f"Current location: {status['name']} ({status['icao']}) - "
+            f"hops: {status['hops']}, total km: {status['km_total']} km, "
+            f"fuel: {status['fuel']} litres"
+        )
 
     def draw_map(self, current, target, airports: List) -> str:
         map_grid = [[" "] * self.map_width for _ in range(self.map_height)]
@@ -50,11 +54,8 @@ class Renderer:
 
         return "\n".join("".join(row) for row in map_grid)
 
-    def clear_console(self):
-        print("\033[H\033[J", end="")
+    def clear_console(self) -> str:
+        return "\033[H\033[J"
 
-    def enter_to_continue(self, input_str: str = "Press Enter to Continue..."):
-        if self.first_loop:
-            self.first_loop = False
-            return None
-        return input(input_str)
+    def prompt_continue(self) -> str:
+        return "Press Enter to Continue..."

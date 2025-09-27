@@ -72,14 +72,14 @@ class WeatherEvent(GameEvent):
         return f"\nWEATHER UPDATE: {weather_update} \n[RADIO]: {random.choice(data['messages'])}"
 
     def trigger(self, game):
-        # Temp fuel consumption
-        base_consumption = (
-            10.0  # 10 units/litres for now. This should be calculated from distance.
-        )
+        if not game.state:
+            raise ValueError("Game state is None. Call g.start() first.")
+        # TODO: refactor fuel consumption logic
+        base_consumption = 10.0
         total_usage = base_consumption * (
             1 + self._weather_data[self.weather_type]["fuel_modifier"]
         )
-        game.resources["fuel"] -= total_usage
+        game.state.player.fuel -= total_usage
         # Save weather event msg for cli to print.
         game._event_messages.append(
             f"{self.description()} (Fuel used: {total_usage:.1f} litres)\n"

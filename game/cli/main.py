@@ -5,6 +5,10 @@ from game.utils.colors import ok, warn, err, info, dim, bold
 from typing import Optional
 
 
+def _clear_console(renderer):
+    print(renderer.clear_console(), end="")
+
+
 def main():
     renderer = Renderer()
     g = Game()
@@ -12,8 +16,8 @@ def main():
 
     # Main loop
     while g.is_running():
-        renderer.enter_to_continue()
-        renderer.clear_console()
+        input(renderer.prompt_continue())
+        _clear_console(renderer)
         st = g.status()
         # Status + quest + points + system messages
         print(info(renderer.draw_game_status(st)))
@@ -96,7 +100,7 @@ def main():
             break
 
         if cmd == "quests":
-            renderer.clear_console()
+            _clear_console(renderer)
             print(bold("\nQuest Log"))
             if g.quest_active:
                 rem = g.remaining_distance_to_target()
@@ -115,7 +119,7 @@ def main():
             continue
 
         if cmd == "map":
-            renderer.clear_console()
+            _clear_console(renderer)
 
             legend = " ".join(
                 [

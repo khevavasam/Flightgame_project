@@ -50,11 +50,8 @@ class Renderer:
 
         return "\n".join("".join(row) for row in map_grid)
 
-    def clear_console(self):
-        print("\033[H\033[J", end="")
+    def clear_console(self) -> str:
+        return "\033[H\033[J"
 
-    def enter_to_continue(self, input_str: str = "Press Enter to Continue..."):
-        if self.first_loop:
-            self.first_loop = False
-            return None
-        return input(input_str)
+    def prompt_continue(self) -> str:
+        return "Press Enter to Continue..."

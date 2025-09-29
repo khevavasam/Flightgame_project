@@ -1,5 +1,6 @@
 from game.core import Game
 from geopy.distance import geodesic
+from game.core.input import handle_input
 from .renderer import Renderer
 from game.utils.colors import ok, warn, err, info, dim, bold
 from typing import Optional
@@ -23,6 +24,18 @@ def main_menu():
             break
         else:
             print("invalid option")
+
+def _colorize_line(line_text: str, delta_val: Optional[int], is_best: bool) -> str:
+    if delta_val is None:
+        return dim(line_text)
+    if delta_val >= 25:
+        return ok(line_text)
+    if delta_val >= 5:
+        return bold(line_text)
+    if delta_val < 0:
+        return err(line_text)
+    return dim(line_text)
+
 
 def main():
     renderer = Renderer()
@@ -63,19 +76,6 @@ def main():
         target_airport = g.get_target_airport() if active_quest else None
         cur_to_target_km = g.remaining_distance_to_target() if active_quest else None
 
-        def _colorize_line(
-            line_text: str, delta_val: Optional[int], is_best: bool
-        ) -> str:
-            if delta_val is None:
-                return dim(line_text)
-            if delta_val >= 25:
-                return ok(line_text)
-            if delta_val >= 5:
-                return bold(line_text)
-            if delta_val < 0:
-                return err(line_text)
-            return dim(line_text)
-
         for i, (a, d) in enumerate(opts, start=1):
             line = f"{i}. {a.name} ({a.icao}) — ~{d:.0f} km"
 
@@ -114,81 +114,9 @@ def main():
                 "'quests' to view quest log, 'i' to refresh, 'q' or 'exit' to quit."
             )
         )
-        cmd = input("> ").strip().lower()
 
-        if cmd in ("q", "exit"):
-            g.exit_game()
-            print(info("Goodbye - game ended."))
-            break
-
-        if cmd == "quests":
-            _clear_console(renderer)
-            print(bold("\nQuest Log"))
-
-            if active_quest:
-                rem = g.remaining_distance_to_target()
-                print(
-                    f"Active:\n- Fly to {active_quest.target_icao} — {rem} km remaining"
-                )
-            else:
-                print("Active:\n- None")
-
-            completed_quests = g.state.completed_quests
-            if completed_quests:
-                print("\nCompleted:")
-                for i, q in enumerate(completed_quests, start=1):
-                    print(f"{i}) {q.target_icao}")
-            else:
-                print(dim("\nCompleted:\n- None"))
-            print(bold(f"\nTotal points: {g.state.points}\n"))
-            continue
-
-        if cmd == "map":
-            _clear_console(renderer)
-
-            legend = " ".join(
-                [
-                    f"{dim('*')} airports",
-                    f"{bold(info('@'))} you",
-                    f"{bold(err('X'))} target",
-                ]
-            )
-            print(legend)
-
-            raw = renderer.draw_map(
-                g.state.player.location, g.get_target_airport(), g.get_airports()
-            )
-
-            palette = {
-                "*": dim("*"),
-                "@": bold(info("@")),
-                "X": bold(err("X")),
-            }
-            colored_map = "".join(palette.get(ch, ch) for ch in raw)
-
-            print(colored_map)
-            continue
-
-        if cmd in ("i", ""):
-            continue
-
-        if cmd.isdigit():
-            idx = int(cmd)
-            if 1 <= idx <= len(opts):
-                chosen = g.pick(idx)
-                print(info(f"\n>>> Flying to {chosen.name} ({chosen.icao}) >>>"))  # type: ignore
-
-                for event_msg in g._event_messages:
-                    print(warn(event_msg))
-                g._event_messages.clear()
-
-                system_msg = g.state.system_msg
-
-                if system_msg:
-                    print(warn(system_msg))
-                    g.state.system_msg = ""
-
-                print()
-                continue
-
-        print(err("Invalid command, try again.\n"))
+        # Command pattern implementation
+        raw = input("> ").strip()
+        result = handle_input(g, raw)
+        for msg in result.messages:
+            print(msg)

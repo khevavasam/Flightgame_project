@@ -1,3 +1,4 @@
+colorama==0.4.6
 geographiclib==2.1
 geopy==2.4.1
 mysql-connector-python==9.4.0

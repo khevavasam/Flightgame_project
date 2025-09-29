@@ -8,11 +8,29 @@ from typing import Optional
 def _clear_console(renderer):
     print(renderer.clear_console(), end="")
 
+def main_menu():
+    print("Flight Game \n") # Finalised game name here later.
+    print("1. Start Game")
+    print("2. Exit \n")
+
+    while True:
+        option = int(input("Choose action: "))
+        if option == 1:
+            print("")
+            break
+        elif option == 2:
+            quit()
+            break
+        else:
+            print("invalid option")
 
 def main():
     renderer = Renderer()
     g = Game()
     g.start()
+
+    # Call main menu before main loop
+    main_menu()
 
     # Main loop
     while g.is_running():

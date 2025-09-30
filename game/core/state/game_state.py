@@ -1,7 +1,6 @@
 from dataclasses import dataclass, asdict, field
 from typing import List, Optional
-from game.core.quest import Quest
-from game.core.entities.airport import Airport
+from game.core import Quest, Airport
 
 
 @dataclass

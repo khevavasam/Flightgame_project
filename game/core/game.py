@@ -2,9 +2,8 @@ from __future__ import annotations
 from typing import List, Tuple, Optional
 from geopy.distance import geodesic
 from game.db import AirportRepository
-from game.core import Airport
+from game.core import Airport, Quest, QuestStatus
 from .events.game_event import get_random_events
-from .quest import Quest, QuestStatus
 from game.core.state.game_state import GameState, PlayerState
 
 GAME_NOT_STARTED_ERR: str = "Game not started. call start() first."

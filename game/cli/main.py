@@ -4,26 +4,34 @@ from game.core.input import handle_input
 from .renderer import Renderer
 from game.utils.colors import ok, warn, err, info, dim, bold
 from typing import Optional
+import sys
+
 
 
 def _clear_console(renderer):
     print(renderer.clear_console(), end="")
 
 def main_menu():
-    print("Flight Game \n") # Finalised game name here later.
-    print("1. Start Game")
-    print("2. Exit \n")
+    print()
+    print(bold("✈  Flight Game\n"))
+    print(dim("—" * 28))
+    print(ok("1)") + " " + info("Start Game") + dim("  (new run)"))
+    print(err("2)") + " " + warn("Exit") + dim("       (quit)\n"))
 
     while True:
-        option = int(input("Choose action: "))
-        if option == 1:
-            print("")
-            break
-        elif option == 2:
-            quit()
-            break
-        else:
-            print("invalid option")
+        s = input(dim("Choose action (1/2 or q): ")).strip().lower()
+
+        if s in {"q", "quit", "exit"}:
+            print()
+            sys.exit(0)
+        if s == "1":
+            print()
+            return 1
+        if s == "2":
+            print()
+            sys.exit(0)
+        print(err("Invalid option. Use 1, 2 or q."))
+
 
 def _colorize_line(line_text: str, delta_val: Optional[int], is_best: bool) -> str:
     if delta_val is None:

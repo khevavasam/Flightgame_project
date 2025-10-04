@@ -89,8 +89,12 @@ def main():
         target_airport = game.get_target_airport() if active_quest else None
         cur_to_target_km = game.remaining_distance_to_target() if active_quest else None
 
+        name_column_width = max(len(a.name + a.icao) for a, _ in opts) + 3
+        distance_column_width = max(len(f"{int(round(d))}") for _, d in opts)
+
         for i, (a, d) in enumerate(opts, start=1):
-            line = f"{i}. {a.name} ({a.icao}) — ~{d:.0f} km"
+            name_and_icao = f"{a.name} ({a.icao})"
+            line = f"{i:2}. {name_and_icao:<{name_column_width}}  —  ~{d:<{distance_column_width}.0f} km"
 
             delta = None
             mark = ""
@@ -104,7 +108,7 @@ def main():
                     if delta >= 25
                     else ("+" if delta >= 5 else ("−" if delta < 0 else "·"))
                 )
-                line += f"  → Δdist: {delta:+d} km  {mark}"
+                line += f"  → Δdist: {delta:+4d} km  {mark}"
 
                 if best_delta is None or delta > best_delta:
                     best_delta = delta

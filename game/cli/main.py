@@ -81,6 +81,7 @@ def main():
         print(dim(f"Points: {game.state.points}"))
         if game.state.system_msg:
             print(warn(game.state.system_msg))
+            game.state.system_msg = ""
 
         opts = game.options()
         best_idx = None

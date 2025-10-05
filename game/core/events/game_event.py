@@ -1,27 +1,43 @@
+"""
+core/events/game_event.py
+=========================
+Defines a GameEvent interface and concrete events for weather conditions and union strikes.
+
+Includes a helper to generate random events.
+"""
+
 from abc import ABC, abstractmethod
 from enum import Enum
 import random
 
 
 class GameEvent(ABC):
+    """Abstract base class for game events."""
+
     @abstractmethod
     def description(self) -> str:
-        pass
+        """A short description of the event."""
+        ...
 
     @abstractmethod
     def trigger(self, game):
-        pass
+        """Trigger the event's effect in the game."""
+        ...
 
 
 class WeatherType(Enum):
+    """Types for different weather conditions."""
+
     CLEAR = 0
     STORM = 1
     RAIN = 2
     SNOW = 3
+    TAILWIND = 4
 
 
 class WeatherEvent(GameEvent):
-    # Feel free to edit or add to these!
+    """Weather related game event affecting fuel consumption."""
+
     _weather_data = {
         WeatherType.CLEAR: {
             "icon": "☀️",
@@ -59,12 +75,23 @@ class WeatherEvent(GameEvent):
             "fuel_modifier": 0.075,
             "effect": "+7.5% fuel consumed.",
         },
+        WeatherType.TAILWIND: {
+            "icon": "💨",
+            "messages": [
+                "Winds at your back, smooth and quick flight ahead.",
+                "Enjoy the speed boost from the tailwind!",
+            ],
+            "fuel_modifier": -0.05,
+            "effect": "-5% fuel consumed due to tailwind.",
+        },
     }
 
     def __init__(self, weather_type: WeatherType) -> None:
+        """Initialize with a specific WeatherType."""
         self.weather_type = weather_type
 
     def description(self) -> str:
+        """Return a radio message and update message for a specific weather type."""
         data = self._weather_data[self.weather_type]
         weather_update = (
             f"{data['icon']} {self.weather_type.name.capitalize()} -> {data['effect']}"
@@ -72,6 +99,7 @@ class WeatherEvent(GameEvent):
         return f"\nWEATHER UPDATE: {weather_update} \n[RADIO]: {random.choice(data['messages'])}"
 
     def trigger(self, game):
+        """Apply fuel consumption and save the event message in the game."""
         if not game.state:
             raise ValueError("Game state is None. Call g.start() first.")
         # TODO: refactor fuel consumption logic
@@ -87,6 +115,8 @@ class WeatherEvent(GameEvent):
 
 
 class UnionStrikeEvent(GameEvent):
+    """Represents a union strike event. [WIP]"""
+
     def description(self) -> str:
         return "\n<<[UNION STRIKE]: FLY TO NEAREST AVAILABLE AIRPORT!>>\n"
 
@@ -97,6 +127,7 @@ class UnionStrikeEvent(GameEvent):
 
 
 def get_random_events() -> list[GameEvent]:
+    """Generate a list of random game events."""
     events = []
     events.append(WeatherEvent(random.choice(list(WeatherType))))
     # Here we can add more events later..

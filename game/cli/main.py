@@ -11,9 +11,9 @@ Handles:
 - Command input handling
 """
 
-from game.core import Game
+from game.core.game import Game
 from geopy.distance import geodesic
-from game.core.input import handle_input
+from game.core.input.input_handler import handle_input
 from .renderer import Renderer
 from game.utils.colors import ok, warn, err, info, dim, bold
 from typing import Optional

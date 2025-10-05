@@ -7,6 +7,7 @@
 - [Prerequisites](#prerequisites)
 - [Setup](#setup)
 - [How to Play](#how-to-play)
+- [Documentation](#documentation)
 - [Authors](#authors)
 
 ## Overview
@@ -75,6 +76,31 @@ From project root:
 
 ```bash
 python -m game.cli
+```
+
+## Documentation
+
+Full API and module documentation generated with Sphinx.
+📂 Structure of docs/
+
+```text
+docs/
+├─ source/         # reStructuredText (.rst) source files
+│  ├─ _static/     # static assets (CSS, JS)
+│  ├─ _templates/  # custom templates
+│  ├─ conf.py      # Sphinx configuration
+│  ├─ index.rst    # main documentation page
+│  └─ modules/     # auto-generated module docs
+└─ build/          # generated HTML (ignored in Git)
+```
+
+🔧 Build Documentation Locally
+
+```bash
+
+# From docs/
+make clean
+make html
 ```
 
 ## Authors

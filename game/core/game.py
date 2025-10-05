@@ -10,12 +10,13 @@ quests, airports, and events.
 from __future__ import annotations
 from typing import List, Tuple, Optional
 from geopy.distance import geodesic
-from game.db import AirportRepository
-from game.core import Airport, Quest, QuestStatus
+from game.db.airport_repo import AirportRepository
+from game.core.entities.airport import Airport
+from game.core.entities.quest import Quest, QuestStatus
 from .events.game_event import get_random_events
 from game.core.state.game_state import GameState, PlayerState
 from game.utils.colors import ok, warn, err, info, dim, bold
-from .planning import compute_player_rule_route, RouteResult
+from game.core.planning.player_rule_route import compute_player_rule_route, RouteResult
 
 GAME_NOT_STARTED_ERR: str = "Game not started. call start() first."
 
@@ -153,6 +154,7 @@ class Game:
             "points": s.points,
             "system_msg": s.system_msg,
         }
+
     def _consume_fuel_for_leg(self, dist_km: float) -> float:
         if not self.state:
             raise RuntimeError(GAME_NOT_STARTED_ERR)
@@ -263,22 +265,37 @@ class Game:
 
             if actual_base > 0:
                 eff = ideal_fuel / actual_base
-                score = int(round(100 * (eff ** 1.1)))
+                score = int(round(100 * (eff**1.1)))
             else:
                 score = 100
             score = max(0, min(100, score))
-            grade = "A" if score >= 90 else "B" if score >= 80 else "C" if score >= 70 else "D" if score >= 60 else "E"
+            grade = (
+                "A"
+                if score >= 90
+                else "B"
+                if score >= 80
+                else "C"
+                if score >= 70
+                else "D"
+                if score >= 60
+                else "E"
+            )
 
             # local color pickers
             def _score_fx(s: int):
-                if s >= 90: return ok
-                if s >= 75: return info
-                if s >= 60: return warn
+                if s >= 90:
+                    return ok
+                if s >= 75:
+                    return info
+                if s >= 60:
+                    return warn
                 return err
 
             def _penalty_fx(pen_l: float):
-                if pen_l <= 0.5:  return ok
-                if pen_l <= 5.0:  return warn
+                if pen_l <= 0.5:
+                    return ok
+                if pen_l <= 5.0:
+                    return warn
                 return err
 
             score_fx = _score_fx(score)
@@ -295,7 +312,9 @@ class Game:
 
             self._issue_new_quest()
             if self.state.active_quest:
-                report += "\n" + info(f"Next target: {self.state.active_quest.target_icao}.")
+                report += "\n" + info(
+                    f"Next target: {self.state.active_quest.target_icao}."
+                )
             self.state.system_msg = report
 
         else:

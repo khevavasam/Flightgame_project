@@ -1,11 +1,24 @@
+"""Compute player flight routes based on distance and fuel rules.
+
+This module provides a simple pathfinding algorithm used to estimate
+a player's possible flight route between airports.
+
+Includes:
+    - `RouteResult`: dataclass describing route metrics.
+    - `_km`: distance helper using `geopy`.
+    - `compute_player_rule_route`: main function implementing the rule-based routing.
+"""
+
 from dataclasses import dataclass
 from typing import Iterable, List
 from geopy.distance import geodesic
-from ..entities.airport import Airport
+from game.core.entities.airport import Airport
 
 
 @dataclass
 class RouteResult:
+    """Represents the result of a computed flight route."""
+
     path: List[Airport]
     hops: int
     distance_km: float
@@ -15,6 +28,7 @@ class RouteResult:
 
 
 def _km(a: Airport, b: Airport) -> float:
+    """Return the great-circle distance between two airports in kilometers."""
     return geodesic((a.lat, a.lon), (b.lat, b.lon)).km
 
 
@@ -26,6 +40,20 @@ def compute_player_rule_route(
     fuel_fixed: float,
     k_neighbors: int = 5,
 ) -> RouteResult:
+    """
+    Compute a simple greedy route between two airports.
+
+    Args:
+        start_airport: Starting airport.
+        target_airport: Destination airport.
+        all_airports: Iterable of available airports.
+        fuel_per_km: Fuel cost per kilometer.
+        fuel_fixed: Fixed cost per leg.
+        k_neighbors: Number of nearest candidates to consider.
+
+    Returns:
+        RouteResult: Result with path, distance, hops, fuel usage, and success flag.
+    """
     airports = list(all_airports)
     if not airports:
         return RouteResult([], 0, 0.0, 0.0, False, "no airports")
@@ -71,11 +99,18 @@ def compute_player_rule_route(
             cand.append((leg_km, a, nxt_to_target))
 
         if not cand:
-            return RouteResult(path, max(0, len(path) - 1), total_km, total_fuel, False, "no forward options")
+            return RouteResult(
+                path,
+                max(0, len(path) - 1),
+                total_km,
+                total_fuel,
+                False,
+                "no forward options",
+            )
 
         # take the k nearest by current leg distance
         cand.sort(key=lambda x: x[0])
-        cand = cand[:max(1, k_neighbors)]
+        cand = cand[: max(1, k_neighbors)]
 
         # selection: maximize distance reduction (delta); if equal, minimize hop cost
         best_leg, best_airport = None, None

@@ -11,7 +11,7 @@ def _clear_console(renderer):
     print(renderer.clear_console(), end="")
 
 
-def main_menu():
+def _main_menu():
     print()
     print(bold("✈  Flight Game\n"))
     print(dim("—" * 28))
@@ -56,7 +56,7 @@ def main():
     game.start()
 
     # Call main menu before main loop
-    main_menu()
+    _main_menu()
 
     # Main loop
     while game.is_running():
@@ -89,12 +89,14 @@ def main():
         target_airport = game.get_target_airport() if active_quest else None
         cur_to_target_km = game.remaining_distance_to_target() if active_quest else None
 
-        name_column_width = max(len(a.name + a.icao) for a, _ in opts) + 3
+        name_column_width = (
+            max(len(a.name + a.icao) for a, _ in opts) + 3
+        )  # + 3 == 1 space and ()
         distance_column_width = max(len(f"{int(round(d))}") for _, d in opts)
 
         for i, (a, d) in enumerate(opts, start=1):
             name_and_icao = f"{a.name} ({a.icao})"
-            line = f"{i:2}. {name_and_icao:<{name_column_width}}  —  ~{d:<{distance_column_width}.0f} km"
+            line = f"{i:2}. {name_and_icao:<{name_column_width}}  —  ~{d:>{distance_column_width}.0f} km"
 
             delta = None
             mark = ""

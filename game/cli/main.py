@@ -1,3 +1,16 @@
+"""
+cli/main.py
+===========
+Entry point and main loop for the Flight Game (cli).
+
+Handles:
+- Main menu
+- Game loop
+- Option display with distance deltas
+- Colorized CLI output
+- Command input handling
+"""
+
 from game.core import Game
 from geopy.distance import geodesic
 from game.core.input import handle_input
@@ -8,10 +21,12 @@ import sys
 
 
 def _clear_console(renderer):
+    """Clear the console using renderer escape codes."""
     print(renderer.clear_console(), end="")
 
 
 def _main_menu():
+    """Display the main menu and return the chosen action."""
     print()
     print(bold("✈  Flight Game\n"))
     print(dim("—" * 28))
@@ -37,6 +52,15 @@ def _main_menu():
 def _colorize_line(
     line_text: str, delta_val: Optional[int], is_best: bool, target: bool
 ) -> str:
+    """
+    Return a colorized line for an option based on delta, target, and best choice.
+
+    Args:
+        line_text (str): The option text to colorize.
+        delta_val (Optional[int]): Distance improvement compared to current location.
+        is_best (bool): Whether this is the best next hop.
+        target (bool): Whether this option is the current quest target.
+    """
     if target:
         return warn(line_text)
     if is_best:
@@ -51,6 +75,7 @@ def _colorize_line(
 
 
 def main():
+    """Run the flight game main menu and main loop."""
     renderer = Renderer()
     game = Game()
     game.start()

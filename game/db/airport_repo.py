@@ -1,9 +1,18 @@
+"""
+db/airport_repo.py
+==================
+Handles database access for Airport data.
+
+Includes methods to fetch airport by ICAO code and list airports by country code.
+"""
+
 from typing import Optional, List, Dict, Any, Sequence, cast
 from .config import get_connection
 from game.core import Airport
 
 
 def _row_to_airport(row: Dict[str, Any]) -> Airport:
+    """Convert a database row to an Airport object."""
     return Airport(
         icao=str(row["ident"]),
         name=str(row["name"]),
@@ -14,8 +23,19 @@ def _row_to_airport(row: Dict[str, Any]) -> Airport:
 
 
 class AirportRepository:
+    """Repository for querying airports from the database."""
+
     @staticmethod
     def get_by_icao(icao: str) -> Optional[Airport]:
+        """
+        Fetch an airport by ICAO code.
+
+        Args:
+            icao (str): The ICAO code of the airport.
+
+        Returns:
+            Optional[Airport]: Airport object if found, else None.
+        """
         sql = """
             SELECT ident, name, iso_country, latitude_deg AS lat, longitude_deg AS lon
             FROM airport
@@ -37,6 +57,16 @@ class AirportRepository:
             "large_airport",
         ),
     ) -> List[Airport]:
+        """
+        List airports filtered by country and type (small, medium, large).
+
+        Args:
+            country (str): ISO country code (default: "FI").
+            allow_types (Sequence[str]): List of airport types to include in filtering.
+
+        Returns:
+            List[Airport]: Filtered list of Airport objects.
+        """
         placeholders = ",".join(["%s"] * len(allow_types))
         sql = f"""
             SELECT ident, name, iso_country, latitude_deg AS lat, longitude_deg AS lon

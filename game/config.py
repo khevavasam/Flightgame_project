@@ -1,3 +1,16 @@
+"""
+config.py
+=========
+Loads environment variables and exposes project-level configuration.
+
+Environment variables:
+    DB_USER: Database username.
+    DB_PASSWORD: Database password.
+    DB_HOST: Database host address (default: 127.0.0.1).
+    DB_PORT: Database port number (default: 3306).
+    DB_NAME: Database name (default: flight_game).
+"""
+
 from dotenv import load_dotenv
 import os
 

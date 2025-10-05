@@ -1,3 +1,12 @@
+"""
+core/game.py
+============
+Core game logic for the flight game.
+
+Defines the `Game` class that manages game state, player actions,
+quests, airports, and events.
+"""
+
 from __future__ import annotations
 from typing import List, Tuple, Optional
 from geopy.distance import geodesic
@@ -10,11 +19,14 @@ GAME_NOT_STARTED_ERR: str = "Game not started. call start() first."
 
 
 class Game:
+    """Represents the flight game."""
+
     START_ICAO = "EFHK"
     COUNTRY = "FI"
     START_FUEL: float = 100.0
 
     def __init__(self) -> None:
+        """Initialize the game instance."""
         self.running: bool = False
         self._airports: List[Airport] = []
         self._last_options: List[Tuple[Airport, float]] = []
@@ -24,6 +36,7 @@ class Game:
 
     # Quest Helpers
     def _issue_new_quest(self) -> None:
+        """Select and assign new active quest for the player."""
         import random
 
         if not self.state:
@@ -41,6 +54,7 @@ class Game:
         self.state.system_msg = f"New quest: Fly to {target.name} ({target.icao})."
 
     def _get_target_airport(self) -> Optional[Airport]:
+        """Return the target Airport object of the active quest."""
         if not self.state or not self.state.active_quest:
             return None
         target_icao = self.state.active_quest.target_icao
@@ -50,6 +64,7 @@ class Game:
         return None
 
     def _viable_target_option(self, airport: Airport, target: Airport) -> bool:
+        """Check if flying to `airport` moves closer to the `target`."""
         distance_to_target = geodesic(
             (airport.lat, airport.lon), (target.lat, target.lon)
         ).km
@@ -62,6 +77,7 @@ class Game:
     # Game lifecycle methods
     # ------------------------------------------------------------------------- #
     def start(self) -> None:
+        """Start the game, initalize game state and assign first quest."""
         start_airport = AirportRepository.get_by_icao(self.START_ICAO)
         if not start_airport:
             raise RuntimeError("Start airport EFHK not found in DB")
@@ -77,14 +93,17 @@ class Game:
         self._issue_new_quest()
 
     def exit_game(self) -> None:
+        """Stop the game."""
         self.running = False
 
     def is_running(self) -> bool:
+        """Check if game is running."""
         return self.running
 
     # Public methods
     # ------------------------------------------------------------------------- #
     def status(self) -> dict:
+        """Return current game status as dictionary."""
         if not self.state:
             raise RuntimeError(GAME_NOT_STARTED_ERR)
         s = self.state
@@ -104,6 +123,7 @@ class Game:
         }
 
     def options(self, limit: int = 5) -> List[Tuple[Airport, float]]:
+        """Return a list of viable airports to fly to with distances in kms."""
         if not self.state:
             raise RuntimeError("Game not started. Call start() first.")
 
@@ -128,6 +148,7 @@ class Game:
         return self._last_options
 
     def pick(self, index: int) -> Optional[Airport]:
+        """Fly to the chosen airport by `index` and trigger events and handle quests."""
         if not (1 <= index <= len(self._last_options)):
             return None
 
@@ -176,9 +197,11 @@ class Game:
         return chosen
 
     def get_airports(self) -> List[Airport]:
+        """Return all loaded airports."""
         return self._airports
 
     def get_target_airport(self) -> Optional[Airport]:
+        """Return the target airport of active quest."""
         return self._get_target_airport()
 
     def remaining_distance_to_target(self) -> Optional[int]:
@@ -196,6 +219,6 @@ class Game:
         ).km
         return int(round(dist_km))
 
-    # Messaging for events
     def add_event_message(self, msg: str) -> None:
+        """Append messages produced by game events to the queue."""
         self._event_messages.append(msg)

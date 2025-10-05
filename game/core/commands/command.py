@@ -1,3 +1,13 @@
+"""
+core/commands/command.py
+========================
+Implements the notorius game programming command pattern.
+
+Defines the abstract Command interface and concrete game commands.
+(Fly, Map, QuestLog, Refresh, Exit).
+Includes a registry of commands and utilities for matching user input and executing commands.
+"""
+
 from abc import ABC, abstractmethod
 from .result import CommandResult, CommandStatus
 from game.cli.renderer import Renderer
@@ -6,21 +16,43 @@ from typing import Optional
 
 
 class Command(ABC):
+    """Abstract base class for game commands."""
+
     name: str
 
     aliases: tuple[str, ...] = ()
 
     def matches(self, text: str) -> bool:
+        """Check if `text` matches the command name or any aliases."""
         return text == self.name.lower() or text in [a.lower() for a in self.aliases]
 
     @abstractmethod
-    def execute(self, game, args: str = "") -> CommandResult: ...
+    def execute(self, game, args: str = "") -> CommandResult:
+        """
+        Execute the game command.
+
+        Args:
+            game (Game): The game instance.
+            args (str): Optional arguments (e.g. 1,2,3..)
+        Returns:
+            CommandResult: Result including messages and result status (ok | error).
+        """
+        ...
 
 
 COMMANDS: dict[str, type[Command]] = {}
 
 
 def get_command(input_text: str) -> Optional[Command]:
+    """
+    Get a Command object matching the `input_text`.
+
+    Args:
+        input_text (str): User input text.
+
+    Returns:
+        Optional[Command]: Matched Command instance or None.
+    """
     input_text = input_text.strip().lower()
     cmd_cls = COMMANDS.get(input_text)
     if cmd_cls:
@@ -32,8 +64,8 @@ def get_command(input_text: str) -> Optional[Command]:
     return None
 
 
-# Decorator.
 def register_command(cls: type[Command]):
+    """Decorator to register a Command class in the COMMAND registry."""
     COMMANDS[cls.name.lower()] = cls
     for alias in cls.aliases:
         COMMANDS[alias.lower()] = cls
@@ -42,12 +74,16 @@ def register_command(cls: type[Command]):
 
 @register_command
 class FlyCommand(Command):
+    """Command to fly to a chosen airport."""
+
     name = "fly"
 
     def matches(self, text: str) -> bool:
+        """Match digits as valid input."""
         return text.isdigit()
 
     def execute(self, game, args="") -> CommandResult:
+        """Execute flying to the chosen airport."""
         if not args.isdigit():
             return CommandResult(
                 [err("You must enter the number of a destination.")],
@@ -83,10 +119,13 @@ class FlyCommand(Command):
 
 @register_command
 class MapCommand(Command):
+    """Command to view the map."""
+
     name = "map"
     aliases = ("m",)
 
     def execute(self, game, args="") -> CommandResult:
+        """Render the map including airports, target and player."""
         r = Renderer()
 
         current = game.state.player.location
@@ -102,10 +141,13 @@ class MapCommand(Command):
 
 @register_command
 class QuestLogCommand(Command):
+    """Command to view the quest log."""
+
     name = "quests"
     aliases = ("quest", "questlog")
 
     def execute(self, game, args="") -> CommandResult:
+        """Display the quest log including active and completed quests."""
         if not game.state:
             return CommandResult([err("Game not started.")], CommandStatus.ERROR)
         messages = [bold("Quest Log")]
@@ -132,10 +174,13 @@ class QuestLogCommand(Command):
 
 @register_command
 class RefreshCommand(Command):
+    """Command to refresh the game status."""
+
     name = "refresh"
     aliases = ("r", "i")
 
     def execute(self, game, args="") -> CommandResult:
+        """Refresh the game status."""
         if not game.state:
             return CommandResult([err("Game not started.")], CommandStatus.ERROR)
         return CommandResult(["Refreshing..."], CommandStatus.OK)

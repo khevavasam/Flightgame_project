@@ -108,9 +108,7 @@ class WeatherEvent(GameEvent):
             game._fuel_factor = 1.0
         game._fuel_factor *= mod
 
-        game._event_messages.append(
-            f"{self.description()} (Fuel factor ×{mod:.2f})\n"
-        )
+        game._event_messages.append(f"{self.description()} (Fuel factor ×{mod:.2f})\n")
 
 
 class UnionStrikeEvent(GameEvent):

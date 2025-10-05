@@ -1,3 +1,1 @@
-from .input_handler import handle_input
-
-__all__ = ["handle_input"]
+"""Input handling system for the Flight Game CLI."""

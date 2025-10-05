@@ -8,7 +8,7 @@ Includes methods to fetch airport by ICAO code and list airports by country code
 
 from typing import Optional, List, Dict, Any, Sequence, cast
 from .config import get_connection
-from game.core import Airport
+from game.core.entities.airport import Airport
 
 
 def _row_to_airport(row: Dict[str, Any]) -> Airport:

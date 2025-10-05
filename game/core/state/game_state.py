@@ -9,7 +9,8 @@ and `GameState` for overall game progress, quests, points, and system messages.
 
 from dataclasses import dataclass, asdict, field
 from typing import List, Optional
-from game.core import Quest, Airport
+from game.core.entities.airport import Airport
+from game.core.entities.quest import Quest
 
 
 @dataclass

@@ -1,4 +1,4 @@
-﻿game.core.state
+game.core.state
 ===============
 
 .. automodule:: game.core.state

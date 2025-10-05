@@ -1,7 +1,7 @@
-game.core.entities
+game.core.planning
 ==================
 
-.. automodule:: game.core.entities
+.. automodule:: game.core.planning
 
    
 .. rubric:: Modules
@@ -10,5 +10,4 @@ game.core.entities
    :toctree:
    :recursive:
 
-   airport
-   quest
+   player_rule_route

@@ -28,9 +28,22 @@ extensions = [
 ]
 autosummary_generate = True
 
+autodoc_default_options = {
+    "members": True,  # Include class and module members
+    "undoc-members": True,  # Include even undocumented members
+    "private-members": False,  # Skip _private ones unless needed
+    "show-inheritance": True,  # Show class inheritance
+}
+
+
+# -- Napoleon settings -------------------------------------------------------
+napoleon_google_docstring = True
+napoleon_numpy_docstring = False
+napoleon_include_private_with_doc = False
+napoleon_include_special_with_doc = True
+
 templates_path = ["_templates"]
 exclude_patterns = []
-
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
@@ -42,8 +55,3 @@ html_theme_options = {
     "sticky_navigation": True,
 }
 html_static_path = ["_static"]
-# -- Napoleon settings -------------------------------------------------------
-napoleon_google_docstring = True
-napoleon_numpy_docstring = False
-napoleon_include_private_with_doc = False
-napoleon_include_special_with_doc = True

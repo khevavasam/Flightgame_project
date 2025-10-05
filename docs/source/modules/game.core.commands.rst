@@ -1,4 +1,4 @@
-﻿game.core.commands
+game.core.commands
 ==================
 
 .. automodule:: game.core.commands

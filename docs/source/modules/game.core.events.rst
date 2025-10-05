@@ -1,4 +1,4 @@
-﻿game.core.events
+game.core.events
 ================
 
 .. automodule:: game.core.events

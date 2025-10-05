@@ -1,4 +1,4 @@
-﻿game.core.input
+game.core.input
 ===============
 
 .. automodule:: game.core.input

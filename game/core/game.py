@@ -49,6 +49,16 @@ class Game:
                 return a
         return None
 
+    def _viable_target_option(self, airport: Airport, target: Airport) -> bool:
+        distance_to_target = geodesic(
+            (airport.lat, airport.lon), (target.lat, target.lon)
+        ).km
+        remaining_total_distance_to_target = self.remaining_distance_to_target()
+        if distance_to_target < remaining_total_distance_to_target:
+            return True
+
+        return False
+
     # Game lifecycle methods
     # ------------------------------------------------------------------------- #
     def start(self) -> None:
@@ -97,12 +107,20 @@ class Game:
         if not self.state:
             raise RuntimeError("Game not started. Call start() first.")
 
-        cur = self.state.player.location
+        player_loc = self.state.player.location
+
+        target_airport = self.get_target_airport()
+        if target_airport is None:
+            raise ValueError("Failed to fetch quest target airport.")
+
         pairs: List[Tuple[Airport, float]] = []
         for a in self._airports:
-            if a.icao == cur.icao:
+            if a.icao == player_loc.icao:
                 continue
-            dist_km = geodesic((cur.lat, cur.lon), (a.lat, a.lon)).km
+            if not self._viable_target_option(a, target_airport):
+                continue
+
+            dist_km = geodesic((player_loc.lat, player_loc.lon), (a.lat, a.lon)).km
             pairs.append((a, dist_km))
 
         pairs.sort(key=lambda t: t[1])

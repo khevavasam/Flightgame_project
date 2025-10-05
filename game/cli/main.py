@@ -7,9 +7,9 @@ from typing import Optional
 import sys
 
 
-
 def _clear_console(renderer):
     print(renderer.clear_console(), end="")
+
 
 def main_menu():
     print()
@@ -33,59 +33,68 @@ def main_menu():
         print(err("Invalid option. Use 1, 2 or q."))
 
 
-def _colorize_line(line_text: str, delta_val: Optional[int], is_best: bool) -> str:
+# TODO: Refactor coloring logic based on option rankings
+def _colorize_line(
+    line_text: str, delta_val: Optional[int], is_best: bool, target: bool
+) -> str:
+    if target:
+        return warn(line_text)
     if delta_val is None:
         return dim(line_text)
-    if delta_val >= 25:
+    if delta_val >= 50:
         return ok(line_text)
-    if delta_val >= 5:
+    if delta_val >= 10:
         return bold(line_text)
-    if delta_val < 0:
+    if delta_val < 10:
         return err(line_text)
     return dim(line_text)
 
 
 def main():
     renderer = Renderer()
-    g = Game()
-    g.start()
+    game = Game()
+    game.start()
 
     # Call main menu before main loop
     main_menu()
 
     # Main loop
-    while g.is_running():
-        if g.state is None:
+    while game.is_running():
+        if game.state is None:
             raise ValueError("Game state is None. Call g.start() first.")
 
         input(renderer.prompt_continue())
         _clear_console(renderer)
         # Status only for renderer.
-        st = g.status()
+        st = game.status()
         print(info(renderer.draw_game_status(st)))
 
-        active_quest = g.state.active_quest
+        active_quest = game.state.active_quest
         if active_quest:
-            rem = g.remaining_distance_to_target()
+            rem = game.remaining_distance_to_target()
             print(
                 bold(
                     f"Active Quest: Fly to {active_quest.target_icao} - remaining: {rem} km"
                 )
             )
 
-        print(dim(f"Points: {g.state.points}"))
-        if g.state.system_msg:
-            print(warn(g.state.system_msg))
+        print(dim(f"Points: {game.state.points}"))
+        if game.state.system_msg:
+            print(warn(game.state.system_msg))
 
-        opts = g.options()
+        opts = game.options()
         best_idx = None
         best_delta = None
 
-        target_airport = g.get_target_airport() if active_quest else None
-        cur_to_target_km = g.remaining_distance_to_target() if active_quest else None
+        target_airport = game.get_target_airport() if active_quest else None
+        cur_to_target_km = game.remaining_distance_to_target() if active_quest else None
+
+        name_column_width = max(len(a.name + a.icao) for a, _ in opts) + 3
+        distance_column_width = max(len(f"{int(round(d))}") for _, d in opts)
 
         for i, (a, d) in enumerate(opts, start=1):
-            line = f"{i}. {a.name} ({a.icao}) — ~{d:.0f} km"
+            name_and_icao = f"{a.name} ({a.icao})"
+            line = f"{i:2}. {name_and_icao:<{name_column_width}}  —  ~{d:<{distance_column_width}.0f} km"
 
             delta = None
             mark = ""
@@ -99,14 +108,15 @@ def main():
                     if delta >= 25
                     else ("+" if delta >= 5 else ("−" if delta < 0 else "·"))
                 )
-                line += f"  → Δdist: {delta:+d} km  {mark}"
+                line += f"  → Δdist: {delta:+4d} km  {mark}"
 
                 if best_delta is None or delta > best_delta:
                     best_delta = delta
                     best_idx = i
 
             is_best = best_idx == i
-            print(_colorize_line(line, delta, is_best))
+
+            print(_colorize_line(line, delta, is_best, target_airport == a))
 
         if best_idx is not None and best_delta is not None and best_delta > 0:
             best_airport = opts[best_idx - 1][0]
@@ -125,6 +135,6 @@ def main():
 
         # Command pattern implementation
         raw = input("> ").strip()
-        result = handle_input(g, raw)
+        result = handle_input(game, raw)
         for msg in result.messages:
             print(msg)

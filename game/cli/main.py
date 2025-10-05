@@ -39,10 +39,10 @@ def _colorize_line(
 ) -> str:
     if target:
         return warn(line_text)
+    if is_best:
+        return ok(line_text)
     if delta_val is None:
         return dim(line_text)
-    if delta_val >= 50:
-        return ok(line_text)
     if delta_val >= 10:
         return bold(line_text)
     if delta_val < 10:
@@ -84,39 +84,43 @@ def main():
             game.state.system_msg = ""
 
         opts = game.options()
-        best_idx = None
-        best_delta = None
 
         target_airport = game.get_target_airport() if active_quest else None
         cur_to_target_km = game.remaining_distance_to_target() if active_quest else None
 
-        name_column_width = (
-            max(len(a.name + a.icao) for a, _ in opts) + 3
-        )  # + 3 == 1 space and ()
-        distance_column_width = max(len(f"{int(round(d))}") for _, d in opts)
+        delta_list = []
+        best_idx = None
+        best_delta = None
 
+        # 1. Calculate best delta for coloring.
         for i, (a, d) in enumerate(opts, start=1):
-            name_and_icao = f"{a.name} ({a.icao})"
-            line = f"{i:2}. {name_and_icao:<{name_column_width}}  —  ~{d:>{distance_column_width}.0f} km"
-
             delta = None
-            mark = ""
             if target_airport and cur_to_target_km is not None:
                 dist_next = geodesic(
                     (a.lat, a.lon), (target_airport.lat, target_airport.lon)
                 ).km
                 delta = cur_to_target_km - int(round(dist_next))
-                mark = (
-                    "++"
-                    if delta >= 25
-                    else ("+" if delta >= 5 else ("−" if delta < 0 else "·"))
-                )
-                line += f"  → Δdist: {delta:+4d} km  {mark}"
-
                 if best_delta is None or delta > best_delta:
                     best_delta = delta
                     best_idx = i
+            delta_list.append(delta)
 
+        name_column_width = max(len(a.name + a.icao) for a, _ in opts) + 3
+        distance_column_width = max(len(f"{int(round(d))}") for _, d in opts)
+
+        # 2. Print options and colorize.
+        for i, ((a, d), delta) in enumerate(zip(opts, delta_list), start=1):
+            name_and_icao = f"{a.name} ({a.icao})"
+            line = f"{i:2}. {name_and_icao:<{name_column_width}}  —  ~{d:>{distance_column_width}.0f} km"
+
+            mark = ""
+            if delta is not None:
+                mark = (
+                    "++"
+                    if delta >= 25
+                    else ("+" if delta >= 5 else ("-" if delta < 0 else "."))
+                )
+            line += f"  → Δdist: {delta:+4d} km  {mark}"
             is_best = best_idx == i
 
             print(_colorize_line(line, delta, is_best, target_airport == a))
@@ -125,19 +129,15 @@ def main():
             best_airport = opts[best_idx - 1][0]
             print(
                 ok(
-                    f"\nRecommended next hop: {best_idx}) {best_airport.icao} — cuts {best_delta} km"
+                    f"\nRecommended next hop: {best_idx}) {best_airport.icao} — cuts {best_delta} km\n"
                 )
             )
 
-        print(
-            dim(
-                "\nCommands: enter option number to fly, "
-                "'quests' to view quest log, 'i' to refresh, 'q' or 'exit' to quit."
-            )
-        )
+        print(renderer.draw_command_list(len(opts)))
 
         # Command pattern implementation
         raw = input("> ").strip()
+        _clear_console(renderer)
         result = handle_input(game, raw)
         for msg in result.messages:
             print(msg)

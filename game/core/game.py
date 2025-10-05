@@ -14,6 +14,8 @@ from game.db import AirportRepository
 from game.core import Airport, Quest, QuestStatus
 from .events.game_event import get_random_events
 from game.core.state.game_state import GameState, PlayerState
+from game.utils.colors import ok, warn, err, info, dim, bold
+from .planning import compute_player_rule_route, RouteResult
 
 GAME_NOT_STARTED_ERR: str = "Game not started. call start() first."
 
@@ -24,6 +26,8 @@ class Game:
     START_ICAO = "EFHK"
     COUNTRY = "FI"
     START_FUEL: float = 100.0
+    FUEL_PER_KM: float = 0.08
+    FUEL_TAKEOFF_LANDING: float = 2.0
 
     def __init__(self) -> None:
         """Initialize the game instance."""
@@ -33,6 +37,14 @@ class Game:
         # messages produced by events (weather, etc.)
         self._event_messages: List[str] = []
         self.state: Optional[GameState] = None
+        self._fuel_factor: float = 1.0
+        self._fuel_fixed: float = 0.0
+
+        self._ideal_route: Optional[RouteResult] = None
+        self._quest_actual_base_fuel: float = 0.0
+        self._quest_actual_fuel: float = 0.0
+        self._quest_start_km_total: float = 0.0
+        self._quest_start_hops: int = 0
 
     # Quest Helpers
     def _issue_new_quest(self) -> None:
@@ -53,6 +65,19 @@ class Game:
         self.state.active_quest = Quest(target_icao=target.icao)
         self.state.system_msg = f"New quest: Fly to {target.name} ({target.icao})."
 
+        self._ideal_route = compute_player_rule_route(
+            start_airport=player_location,
+            target_airport=target,
+            all_airports=self._airports,
+            fuel_per_km=self.FUEL_PER_KM,
+            fuel_fixed=self.FUEL_TAKEOFF_LANDING,
+            k_neighbors=5,
+        )
+        self._quest_actual_base_fuel = 0.0
+        self._quest_actual_fuel = 0.0
+        self._quest_start_km_total = self.state.player.km_total
+        self._quest_start_hops = self.state.player.hops
+
     def _get_target_airport(self) -> Optional[Airport]:
         """Return the target Airport object of the active quest."""
         if not self.state or not self.state.active_quest:
@@ -71,7 +96,6 @@ class Game:
         remaining_total_distance_to_target = self.remaining_distance_to_target()
         if distance_to_target < remaining_total_distance_to_target:
             return True
-
         return False
 
     # Game lifecycle methods
@@ -88,6 +112,14 @@ class Game:
         self.running = True
         self._last_options = []
         self._event_messages.clear()
+        self._fuel_factor = 1.0
+        self._fuel_fixed = 0.0
+
+        self._ideal_route = None
+        self._quest_actual_base_fuel = 0.0
+        self._quest_actual_fuel = 0.0
+        self._quest_start_km_total = 0.0
+        self._quest_start_hops = 0
 
         # Issue the first quest
         self._issue_new_quest()
@@ -121,6 +153,25 @@ class Game:
             "points": s.points,
             "system_msg": s.system_msg,
         }
+    def _consume_fuel_for_leg(self, dist_km: float) -> float:
+        if not self.state:
+            raise RuntimeError(GAME_NOT_STARTED_ERR)
+
+        base = self.FUEL_TAKEOFF_LANDING + self.FUEL_PER_KM * dist_km
+        burn = (base + self._fuel_fixed) * self._fuel_factor
+
+        p = self.state.player
+        p.fuel = max(0.0, p.fuel - burn)
+
+        self._quest_actual_fuel += burn
+
+        status_color = err if p.fuel <= 0 else (warn if p.fuel <= 8.0 else ok)
+        msg = f"⛽  Fuel used: {err(f'{burn:.1f} L')} | Remaining: {status_color(f'{p.fuel:.1f} L')}"
+        self._event_messages.append(msg)
+
+        self._fuel_factor = 1.0
+        self._fuel_fixed = 0.0
+        return burn
 
     def options(self, limit: int = 5) -> List[Tuple[Airport, float]]:
         """Return a list of viable airports to fly to with distances in kms."""
@@ -167,6 +218,16 @@ class Game:
         for event in events:
             event.trigger(self)
 
+        base_burn = self.FUEL_TAKEOFF_LANDING + self.FUEL_PER_KM * dist
+        self._quest_actual_base_fuel += base_burn
+
+        self._consume_fuel_for_leg(dist)
+
+        if p.fuel <= 0:
+            self.state.system_msg = "Out of fuel!"
+            self.running = False
+            return chosen
+
         # -----Quest check-----
         if (
             self.state.active_quest
@@ -178,17 +239,65 @@ class Game:
             self.state.completed_quests.append(finished)
             self.state.points += 1
 
-            # issue a new one
+            p.fuel = self.START_FUEL
+
+            # --- begin colored report block ---
+            if self._ideal_route and self._ideal_route.success:
+                ideal_fuel = self._ideal_route.base_fuel
+                ideal_dist = self._ideal_route.distance_km
+                ideal_hops = self._ideal_route.hops
+            else:
+                # fallback
+                actual_dist = p.km_total - self._quest_start_km_total
+                actual_hops = p.hops - self._quest_start_hops
+                ideal_dist = actual_dist
+                ideal_hops = actual_hops
+                ideal_fuel = self._quest_actual_base_fuel
+
+            actual_base = max(0.0, self._quest_actual_base_fuel)
+            actual_real = max(0.0, self._quest_actual_fuel)
+            weather_penalty = max(0.0, actual_real - actual_base)
+
+            actual_dist = p.km_total - self._quest_start_km_total
+            actual_hops = p.hops - self._quest_start_hops
+
+            if actual_base > 0:
+                eff = ideal_fuel / actual_base
+                score = int(round(100 * (eff ** 1.1)))
+            else:
+                score = 100
+            score = max(0, min(100, score))
+            grade = "A" if score >= 90 else "B" if score >= 80 else "C" if score >= 70 else "D" if score >= 60 else "E"
+
+            # local color pickers
+            def _score_fx(s: int):
+                if s >= 90: return ok
+                if s >= 75: return info
+                if s >= 60: return warn
+                return err
+
+            def _penalty_fx(pen_l: float):
+                if pen_l <= 0.5:  return ok
+                if pen_l <= 5.0:  return warn
+                return err
+
+            score_fx = _score_fx(score)
+            penalty_fx = _penalty_fx(weather_penalty)
+
+            report = (
+                f"{bold(ok(f'Quest completed: {finished.target_icao}! +1 point.'))}\n"
+                f"{bold(info('--- ROUTE REPORT ---'))}\n"
+                f"{dim(f'Ideal:  {ideal_dist:.0f} km | {ideal_hops} hops | {ideal_fuel:.1f} L')}\n"
+                f"{info(f'Yours:  {actual_dist:.0f} km | {actual_hops} hops | {actual_base:.1f} L (route)')}\n"
+                f"{penalty_fx(f'Weather impact: +{weather_penalty:.1f} L')}\n"
+                f"{bold(score_fx(f'Efficiency: {score}/100 ({grade})'))}"
+            )
+
             self._issue_new_quest()
             if self.state.active_quest:
-                self.state.system_msg = (
-                    f"Quest completed: {finished.target_icao}! +1 point. "
-                    f"Next target: {self.state.active_quest.target_icao}."
-                )
-            else:
-                self.state.system_msg = (
-                    f"Quest completed: {finished.target_icao}! +1 point."
-                )
+                report += "\n" + info(f"Next target: {self.state.active_quest.target_icao}.")
+            self.state.system_msg = report
+
         else:
             # no quest-related event this hop
             if not self.state.system_msg.startswith("New quest"):

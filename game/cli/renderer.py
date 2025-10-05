@@ -1,5 +1,6 @@
 from typing import List
 from game.utils.math_helpers import clamp, scale_to_index, normalize
+from game.utils.colors import ok, info, err, dim, bold
 
 # Finland min max coordinates for the map scaling
 MIN_LAT, MAX_LAT = 59.0, 70.0
@@ -27,13 +28,6 @@ class Renderer:
 
         return x, y
 
-    def draw_game_status(self, status: dict) -> str:
-        return (
-            f"Current location: {status['name']} ({status['icao']}) - "
-            f"hops: {status['hops']}, total km: {status['km_total']} km, "
-            f"fuel: {status['fuel']} litres"
-        )
-
     def draw_map(self, current, target, airports: List) -> str:
         map_grid = [[" "] * self.map_width for _ in range(self.map_height)]
 
@@ -53,6 +47,27 @@ class Renderer:
         # TODO: Mark 5 nearest airports with &
 
         return "\n".join("".join(row) for row in map_grid)
+
+    def draw_game_status(self, status: dict) -> str:
+        return (
+            f"Current location: {status['name']} ({status['icao']}) - "
+            f"hops: {status['hops']}, total km: {status['km_total']} km, "
+            f"fuel: {status['fuel']} litres"
+        )
+
+    def draw_command_list(self, options_count: int = 5) -> str:
+        option_range_str = f"[1-{options_count}]" if options_count > 1 else "[1]  "
+        command_lines = [
+            bold("🗒 Commands"),
+            dim("────────────────────────────────────"),
+            f"{ok(option_range_str)}      {dim('Choose next airport to fly to')}",
+            f"{info('[m | map]')}  {dim('View map')}",
+            f"{info('[quests]')}   {dim('View questlog')}",
+            f"{info('[i | r]')}    {dim('Refresh status')}",
+            f"{err('[q | exit]')} {dim('Quit')}",
+            "",
+        ]
+        return "\n".join(command_lines)
 
     def clear_console(self) -> str:
         return "\033[H\033[J"

@@ -74,15 +74,14 @@ class WeatherEvent(GameEvent):
     def trigger(self, game):
         if not game.state:
             raise ValueError("Game state is None. Call g.start() first.")
-        # TODO: refactor fuel consumption logic
-        base_consumption = 10.0
-        total_usage = base_consumption * (
-            1 + self._weather_data[self.weather_type]["fuel_modifier"]
-        )
-        game.state.player.fuel -= total_usage
-        # Save weather event msg for cli to print.
+
+        mod = 1.0 + self._weather_data[self.weather_type]["fuel_modifier"]
+        if not hasattr(game, "_fuel_factor"):
+            game._fuel_factor = 1.0
+        game._fuel_factor *= mod
+
         game._event_messages.append(
-            f"{self.description()} (Fuel used: {total_usage:.1f} litres)\n"
+            f"{self.description()} (Fuel factor ×{mod:.2f})\n"
         )
 
 

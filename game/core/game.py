@@ -5,6 +5,7 @@ from game.db import AirportRepository
 from game.core import Airport, Quest, QuestStatus
 from .events.game_event import get_random_events
 from game.core.state.game_state import GameState, PlayerState
+from game.utils.colors import ok, warn, err, info, dim, bold
 
 GAME_NOT_STARTED_ERR: str = "Game not started. call start() first."
 
@@ -13,6 +14,8 @@ class Game:
     START_ICAO = "EFHK"
     COUNTRY = "FI"
     START_FUEL: float = 100.0
+    FUEL_PER_KM: float = 0.08
+    FUEL_TAKEOFF_LANDING: float = 2.0
 
     def __init__(self) -> None:
         self.running: bool = False
@@ -21,6 +24,8 @@ class Game:
         # messages produced by events (weather, etc.)
         self._event_messages: List[str] = []
         self.state: Optional[GameState] = None
+        self._fuel_factor: float = 1.0
+        self._fuel_fixed: float = 0.0
 
     # Quest Helpers
     def _issue_new_quest(self) -> None:
@@ -72,6 +77,9 @@ class Game:
         self.running = True
         self._last_options = []
         self._event_messages.clear()
+        self._fuel_factor = 1.0
+        self._fuel_fixed = 0.0
+
 
         # Issue the first quest
         self._issue_new_quest()
@@ -102,6 +110,23 @@ class Game:
             "points": s.points,
             "system_msg": s.system_msg,
         }
+    def _consume_fuel_for_leg(self, dist_km: float) -> float:
+        if not self.state:
+            raise RuntimeError(GAME_NOT_STARTED_ERR)
+
+        base = self.FUEL_TAKEOFF_LANDING + self.FUEL_PER_KM * dist_km
+        burn = (base + self._fuel_fixed) * self._fuel_factor
+
+        p = self.state.player
+        p.fuel = max(0.0, p.fuel - burn)
+
+        status_color = err if p.fuel <= 0 else (warn if p.fuel <= 8.0 else ok)
+        msg = f"⛽  Fuel used: {err(f'{burn:.1f} L')} | Remaining: {status_color(f'{p.fuel:.1f} L')}"
+        self._event_messages.append(msg)
+
+        self._fuel_factor = 1.0
+        self._fuel_fixed = 0.0
+        return burn
 
     def options(self, limit: int = 5) -> List[Tuple[Airport, float]]:
         if not self.state:
@@ -145,6 +170,14 @@ class Game:
         events = get_random_events()
         for event in events:
             event.trigger(self)
+
+        self._consume_fuel_for_leg(dist)
+
+        if p.fuel <= 0:
+            self.state.system_msg = "Out of fuel!"
+            self.running = False
+            return chosen
+
 
         # -----Quest check-----
         if (

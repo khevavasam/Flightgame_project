@@ -81,7 +81,8 @@ python -m game.cli
 ## Documentation
 
 Full API and module documentation generated with Sphinx.
-📂 Structure of docs/
+
+### 📂 Structure of docs/
 
 ```text
 docs/
@@ -94,7 +95,7 @@ docs/
 └─ build/          # generated HTML (ignored in Git)
 ```
 
-🔧 Build Documentation Locally
+### 🔧 Build Documentation Locally
 
 ```bash
 

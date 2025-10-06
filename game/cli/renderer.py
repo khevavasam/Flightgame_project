@@ -86,7 +86,7 @@ class Renderer:
         """Return a string of the current player's location, hops, distance, and fuel."""
         status_list = [
             f"🗺️ {info('Location:')} {status['name']} ({status['icao']})",
-            f"✈️ {info('Hops:')} {status['hops']} | 🌍 {info('Total distance:')} {status['km_total']} km | 🎖️{info('Points:')} {status['points']}",
+            f"✈️ {info('Hops:')} {status['hops']} {dim('|')} 🌍 {info('Total distance:')} {status['km_total']} km {dim('|')} 🎖️ {info('Points:')} {status['points']}",
             f"⛽ {info('Fuel:')} {self._fuel_progress_bar(int(status['fuel']))} {status['fuel']:.1f}/100.0 L",
             f"🎯 {warn('Active quest:')} Fly to {status['quest_target']} 🏁 - remaining {status['quest_distance']} km",
             self._divider(),

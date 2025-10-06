@@ -8,7 +8,7 @@ Includes map rendering, game status, command list, and console utilities.
 
 from typing import List
 from game.utils.math_helpers import clamp, scale_to_index, normalize
-from game.utils.colors import ok, info, err, dim, bold
+from game.utils.colors import dim, bold, info, warn
 
 # Finland min max coordinates for the map scaling
 MIN_LAT, MAX_LAT = 59.0, 70.0
@@ -61,25 +61,48 @@ class Renderer:
 
         return "\n".join("".join(row) for row in map_grid)
 
+    def _fuel_progress_bar(self, current: int, max: int = 100) -> str:
+        bar_symbols = ("⬜", "🟩", "🟨", "🟥")
+        progess_bar = [bar_symbols[0]] * 10
+        fuel_ratio = current / max
+        symbols_to_fill = int(fuel_ratio * 10)
+        if fuel_ratio > 0.7:
+            symbol = bar_symbols[1]
+        elif fuel_ratio > 0.3:
+            symbol = bar_symbols[2]
+        else:
+            symbol = bar_symbols[3]
+
+        for i in range(symbols_to_fill):
+            progess_bar[i] = symbol
+
+        return "".join(progess_bar)
+
+    def _divider(self, width: int = 60) -> str:
+        return dim(width * "-")
+
     def draw_game_status(self, status: dict) -> str:
         """Return a string of the current player's location, hops, distance, and fuel."""
-        return (
-            f"Current location: {status['name']} ({status['icao']}) - "
-            f"hops: {status['hops']}, total km: {status['km_total']} km, "
-            f"fuel: {status['fuel']} litres"
-        )
+        status_list = [
+            f"🗺️ {info('Location:')} {status['name']} ({status['icao']})",
+            f"✈️ {info('Hops:')} {status['hops']} | 🌍 {info('Total distance:')} {status['km_total']} km | 🎖️{info('Points:')} {status['points']}",
+            f"⛽ {info('Fuel:')} {self._fuel_progress_bar(int(status['fuel']))} {status['fuel']:.1f}/100.0 L",
+            f"🎯 {warn('Active quest:')} Fly to {status['quest_target']} 🏁 - remaining {status['quest_distance']} km",
+            self._divider(),
+        ]
+        return "\n".join(status_list)
 
     def draw_command_list(self, options_count: int = 5) -> str:
         """Return a string with the list of available commands."""
         option_range_str = f"[1-{options_count}]" if options_count > 1 else "[1]  "
         command_lines = [
-            bold("🗒 Commands"),
-            dim("────────────────────────────────────"),
-            f"{ok(option_range_str)}      {dim('Choose next airport to fly to')}",
-            f"{info('[m | map]')}  {dim('View map')}",
-            f"{info('[quests]')}   {dim('View questlog')}",
-            f"{info('[i | r]')}    {dim('Refresh status')}",
-            f"{err('[q | exit]')} {dim('Quit')}",
+            bold("🕹️ Commands"),
+            self._divider(),
+            f"{option_range_str:<12}{dim('Choose next airport to fly to')}",
+            f"{'[m | map]':<12}{dim('View map')}",
+            f"{'[quests]':<12}{dim('View questlog')}",
+            f"{'[i | r]':<12}{dim('Refresh status')}",
+            f"{'[q | exit]':<12}{dim('Quit')}",
             "",
         ]
         return "\n".join(command_lines)

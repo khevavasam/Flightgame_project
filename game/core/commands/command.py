@@ -147,28 +147,38 @@ class QuestLogCommand(Command):
     aliases = ("quest", "questlog")
 
     def execute(self, game, args="") -> CommandResult:
-        """Display the quest log including active and completed quests."""
+        """Display the quest log including active and completed quests (visual only)."""
         if not game.state:
             return CommandResult([err("Game not started.")], CommandStatus.ERROR)
-        messages = [bold("Quest Log")]
+
+        messages: list[str] = []
+        messages.append(bold("Quest Log"))
+        messages.append(dim("—" * 32))
+
+        # Active
+        messages.append(info("Active:"))
         active_quest = game.state.active_quest
         if active_quest:
             rem = game.remaining_distance_to_target()
-            messages.append(
-                f"Active:\n Fly to {active_quest.target_icao} - {rem} km remaining"
-            )
+            rem_txt = f"{rem} km remaining" if rem is not None else "distance unknown"
+            messages.append(f"  -> Fly to {bold(active_quest.target_icao)} {dim(f'({rem_txt})')}")
         else:
-            messages.append("Active:\n- None")
+            messages.append(dim("  -> None"))
 
+        # Completed
+        messages.append("")
         completed_quests = game.state.completed_quests
         if completed_quests:
-            messages.append("\nCompleted:")
+            messages.append(ok("Completed:"))
             for i, q in enumerate(completed_quests, start=1):
-                messages.append(f"{i} {q.target_icao}")
+                messages.append(dim(f"  {i}. ") + bold(f"{q.target_icao}"))
         else:
-            messages.append("\nCompleted:\n- None")
+            messages.append(dim("Completed:\n  - None"))
 
-        messages.append(bold(f"\nTotal points: {game.state.points}"))
+        messages.append("")
+        messages.append(bold(f"Total points: {game.state.points}"))
+        messages.append(dim("—" * 32))
+
         return CommandResult(messages, CommandStatus.OK)
 
 

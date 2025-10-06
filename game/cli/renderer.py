@@ -9,6 +9,7 @@ Includes map rendering, game status, command list, and console utilities.
 from typing import List
 from game.utils.math_helpers import clamp, scale_to_index, normalize
 from game.utils.colors import dim, bold, info, warn
+from math import ceil
 
 # Finland min max coordinates for the map scaling
 MIN_LAT, MAX_LAT = 59.0, 70.0
@@ -65,7 +66,7 @@ class Renderer:
         bar_symbols = ("⬜", "🟩", "🟨", "🟥")
         progess_bar = [bar_symbols[0]] * 10
         fuel_ratio = current / max
-        symbols_to_fill = int(fuel_ratio * 10)
+        symbols_to_fill = ceil(fuel_ratio * 10)
         if fuel_ratio > 0.7:
             symbol = bar_symbols[1]
         elif fuel_ratio > 0.3:

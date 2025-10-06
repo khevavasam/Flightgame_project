@@ -86,8 +86,8 @@ Full API and module documentation generated with Sphinx.
 
 ```text
 docs/
-├─ source/         # reStructuredText (.rst) source files
-│  ├─ _static/     # static assets (CSS, JS)
+├─ source/
+│  ├─ _static/     # static assets
 │  ├─ _templates/  # custom templates
 │  ├─ conf.py      # Sphinx configuration
 │  ├─ index.rst    # main documentation page
@@ -100,6 +100,7 @@ docs/
 ```bash
 
 # From docs/
+pip install -r doc-requirements.txt
 make clean
 make html
 ```

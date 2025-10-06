@@ -226,7 +226,7 @@ class Game:
         self._consume_fuel_for_leg(dist)
 
         if p.fuel <= 0:
-            self.state.system_msg = "Out of fuel!"
+            self.state.system_msg = "Game over — out of fuel"
             self.running = False
             return chosen
 

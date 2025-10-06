@@ -47,6 +47,27 @@ def _main_menu():
             sys.exit(0)
         print(err("Invalid option. Use 1, 2 or q."))
 
+# --- Simple post-run prompt shown after the game loop ends (e.g., out of fuel) ---
+def _game_over_prompt(game):
+    """Display a minimal game-over prompt and return 'retry' or 'exit'."""
+    print()
+    if getattr(game, "state", None) and game.state.system_msg:
+        print(err(game.state.system_msg))
+    else:
+        print(err("Game over."))
+
+    print()
+    print(ok("1)") + " " + info("Try again") + dim("  (new game)"))
+    print(err("2)") + " " + warn("Exit") + dim("        (quit)\n"))
+
+    while True:
+        s = input(dim("Choose action (1/2 or q): ")).strip().lower()
+        if s in {"q", "quit", "exit", "2"}:
+            return "exit"
+        if s == "1":
+            return "retry"
+        print(err("Invalid option. Use 1, 2 or q."))
+
 
 # TODO: Refactor coloring logic based on option rankings
 def _colorize_line(
@@ -83,78 +104,90 @@ def main():
     # Call main menu before main loop
     _main_menu()
 
-    # Main loop
-    while game.is_running():
-        if game.state is None:
-            raise ValueError("Game state is None. Call g.start() first.")
+    # Outer loop allows returning to a minimal game-over prompt
+    while True:
+        # Main loop
+        while game.is_running():
+            if game.state is None:
+                raise ValueError("Game state is None. Call g.start() first.")
 
-        input(renderer.prompt_continue())
-        _clear_console(renderer)
-        # Status only for renderer.
-        st = game.status()
-        print(renderer.draw_game_status(st))
+            input(renderer.prompt_continue())
+            _clear_console(renderer)
+            # Status only for renderer.
+            st = game.status()
+            print(renderer.draw_game_status(st))
 
-        active_quest = game.state.active_quest
+            active_quest = game.state.active_quest
 
-        if game.state.system_msg:
-            print(warn(game.state.system_msg))
-            game.state.system_msg = ""
+            if game.state.system_msg:
+                print(warn(game.state.system_msg))
+                game.state.system_msg = ""
 
-        opts = game.options()
+            opts = game.options()
 
-        target_airport = game.get_target_airport() if active_quest else None
-        cur_to_target_km = game.remaining_distance_to_target() if active_quest else None
+            target_airport = game.get_target_airport() if active_quest else None
+            cur_to_target_km = game.remaining_distance_to_target() if active_quest else None
 
-        delta_list = []
-        best_idx = None
-        best_delta = None
+            delta_list = []
+            best_idx = None
+            best_delta = None
 
-        # 1. Calculate best delta for coloring.
-        for i, (a, d) in enumerate(opts, start=1):
-            delta = None
-            if target_airport and cur_to_target_km is not None:
-                dist_next = geodesic(
-                    (a.lat, a.lon), (target_airport.lat, target_airport.lon)
-                ).km
-                delta = cur_to_target_km - int(round(dist_next))
-                if best_delta is None or delta > best_delta:
-                    best_delta = delta
-                    best_idx = i
-            delta_list.append(delta)
+            # 1. Calculate best delta for coloring.
+            for i, (a, d) in enumerate(opts, start=1):
+                delta = None
+                if target_airport and cur_to_target_km is not None:
+                    dist_next = geodesic(
+                        (a.lat, a.lon), (target_airport.lat, target_airport.lon)
+                    ).km
+                    delta = cur_to_target_km - int(round(dist_next))
+                    if best_delta is None or delta > best_delta:
+                        best_delta = delta
+                        best_idx = i
+                delta_list.append(delta)
 
-        name_column_width = max(len(a.name + a.icao) for a, _ in opts) + 3
-        distance_column_width = max(len(f"{int(round(d))}") for _, d in opts)
+            name_column_width = max(len(a.name + a.icao) for a, _ in opts) + 3
+            distance_column_width = max(len(f"{int(round(d))}") for _, d in opts)
 
-        # 2. Print options and colorize.
-        for i, ((a, d), delta) in enumerate(zip(opts, delta_list), start=1):
-            name_and_icao = f"{a.name} ({a.icao})"
-            line = f"{i:2}. {name_and_icao:<{name_column_width}}  —  ~{d:>{distance_column_width}.0f} km"
+            # 2. Print options and colorize.
+            for i, ((a, d), delta) in enumerate(zip(opts, delta_list), start=1):
+                name_and_icao = f"{a.name} ({a.icao})"
+                line = f"{i:2}. {name_and_icao:<{name_column_width}}  —  ~{d:>{distance_column_width}.0f} km"
 
-            mark = ""
-            if delta is not None:
-                mark = (
-                    "++"
-                    if delta >= 25
-                    else ("+" if delta >= 5 else ("-" if delta < 0 else "."))
+                mark = ""
+                if delta is not None:
+                    mark = (
+                        "++"
+                        if delta >= 25
+                        else ("+" if delta >= 5 else ("-" if delta < 0 else "."))
+                    )
+                line += f"  → Δdist: {delta:+4d} km  {mark}"
+                is_best = best_idx == i
+
+                print(_colorize_line(line, delta, is_best, target_airport == a))
+
+            if best_idx is not None and best_delta is not None and best_delta > 0:
+                best_airport = opts[best_idx - 1][0]
+                print(
+                    ok(
+                        f"\nRecommended next hop: {best_idx}) {best_airport.icao} — cuts {best_delta} km\n"
+                    )
                 )
-            line += f"  → Δdist: {delta:+4d} km  {mark}"
-            is_best = best_idx == i
 
-            print(_colorize_line(line, delta, is_best, target_airport == a))
+            print(renderer.draw_command_list(len(opts)))
 
-        if best_idx is not None and best_delta is not None and best_delta > 0:
-            best_airport = opts[best_idx - 1][0]
-            print(
-                ok(
-                    f"\nRecommended next hop: {best_idx}) {best_airport.icao} — cuts {best_delta} km\n"
-                )
-            )
+            # Command pattern implementation
+            raw = input("> ").strip()
+            _clear_console(renderer)
+            result = handle_input(game, raw)
+            for msg in result.messages:
+                print(msg)
 
-        print(renderer.draw_command_list(len(opts)))
+        # When the game stops (e.g., out of fuel), show a minimal game-over prompt
+        action = _game_over_prompt(game)
+        if action == "retry":
+            game.start()   # new game
+            continue
 
-        # Command pattern implementation
-        raw = input("> ").strip()
-        _clear_console(renderer)
-        result = handle_input(game, raw)
-        for msg in result.messages:
-            print(msg)
+        # action == "exit"
+        print()
+        sys.exit(0)

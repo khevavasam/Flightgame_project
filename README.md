@@ -81,6 +81,7 @@ python -m game.cli
 ## Documentation
 
 Full API and module documentation generated with Sphinx.
+[Api & module docs](https://flightgame-api.netlify.app/)
 
 ### 📂 Structure of docs/
 

@@ -31,7 +31,7 @@ autosummary_generate = True
 autodoc_default_options = {
     "members": True,  # Include class and module members
     "undoc-members": True,  # Include even undocumented members
-    "private-members": False,  # Skip _private ones unless needed
+    "private-members": True,
     "show-inheritance": True,  # Show class inheritance
 }
 

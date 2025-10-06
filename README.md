@@ -1,4 +1,4 @@
-# Flightgame_project
+# ✈️ Flightgame_project
 
 ## 📚 Table of Contents
 
@@ -13,7 +13,7 @@
 ## Overview
 
 Simple flight game made with **Python** and **MariaDB**.
-Players receive quests to fly to specific airports and must plan the most environmentally friendly route (least fuel consumption).
+Players receive quests to fly to specific airports and must plan the most eco-friendly route (least fuel consumption).
 
 ## Project Structure
 
@@ -81,7 +81,8 @@ python -m game.cli
 ## Documentation
 
 Full API and module documentation generated with Sphinx.
-[Api & module docs](https://flightgame-api.netlify.app/)
+
+[📜 Link to API Docs](https://flightgame-api.netlify.app/)
 
 ### 📂 Structure of docs/
 

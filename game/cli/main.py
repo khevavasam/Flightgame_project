@@ -92,18 +92,10 @@ def main():
         _clear_console(renderer)
         # Status only for renderer.
         st = game.status()
-        print(info(renderer.draw_game_status(st)))
+        print(renderer.draw_game_status(st))
 
         active_quest = game.state.active_quest
-        if active_quest:
-            rem = game.remaining_distance_to_target()
-            print(
-                bold(
-                    f"Active Quest: Fly to {active_quest.target_icao} - remaining: {rem} km"
-                )
-            )
 
-        print(dim(f"Points: {game.state.points}"))
         if game.state.system_msg:
             print(warn(game.state.system_msg))
             game.state.system_msg = ""

@@ -70,6 +70,15 @@ DB_HOST="127.0.0.1"
 DB_PORT=3306
 ```
 
+5. **Database setup**
+
+- Create database flight_game
+
+```bash
+# From sql/
+mariadb -u <your-username> -p flight_game < flight_game.sql
+```
+
 ## How to Play
 
 From project root:

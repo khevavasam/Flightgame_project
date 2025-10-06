@@ -22,10 +22,4 @@ Game Package
    game.utils
    game.db
    game.core
-   game.core.entities
-   game.core.state
-   game.core.events
-   game.core.commands
-   game.core.input
-   game.core.planning
    game.cli

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Flight Game</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <script src="{{ url_for('static', filename='main.js')}}" defer></script>
+  </head>
+  <body>
+    <header><h1>Flight Game</h1></header>
+    <main>
+      <button onclick="start_game()">Start Game</button>
+      <button onclick="get_game_status()">Status</button>
+      <button onclick="get_game_options()">Show Options</button>
+      <div id="optionButtons"></div>
+      <pre id="screen"></pre>
+    </main>
+    <footer><p>~ Metropolia ~</p></footer>
+  </body>
+</html>

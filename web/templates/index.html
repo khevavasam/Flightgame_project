@@ -3,21 +3,127 @@
   <head>
     <meta charset="UTF-8" />
     <title>Flight Game</title>
+
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet/dist/leaflet.css"
+    />
+
+    <!-- Our CSS -->
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
     />
-    <script src="{{ url_for('static', filename='main.js')}}" defer></script>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <!-- Our JS -->
+    <script src="{{ url_for('static', filename='main.js') }}" defer></script>
   </head>
+
   <body>
-    <header><h1>Flight Game</h1></header>
-    <main>
-      <button onclick="start_game()">Start Game</button>
-      <button onclick="get_game_status()">Status</button>
-      <button onclick="get_game_options()">Show Options</button>
-      <div id="optionButtons"></div>
-      <pre id="screen"></pre>
-    </main>
-    <footer><p>~ Metropolia ~</p></footer>
+    <div class="app">
+      <!-- LEFT: sidebar -->
+      <aside class="sidebar">
+        <header class="sidebar-header">
+          <h1>Flight Game</h1>
+          <p class="subtitle">
+            Plan efficient routes across Finland and keep your fuel under control.
+          </p>
+        </header>
+
+        <main class="sidebar-content">
+          <!-- Controls -->
+          <section class="panel controls-panel">
+            <div class="controls-row">
+              <button onclick="startGame()">Start game</button>
+              <button onclick="fetchStatus()">Refresh status</button>
+            </div>
+            <div class="controls-row">
+              <button onclick="fetchOptions()">Nearest airports</button>
+              <button onclick="showRoute()">Show optimal route</button>
+            </div>
+          </section>
+
+          <!-- Player status -->
+          <section id="statusPanel" class="panel"></section>
+
+          <!-- Active quest -->
+          <section id="questPanel" class="panel"></section>
+
+          <!-- Next airports -->
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Next airports</h2>
+            </div>
+            <div id="optionList" class="options-list"></div>
+          </section>
+
+          <!-- Flight history -->
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Flight history</h2>
+            </div>
+            <div id="historyList" class="history-list"></div>
+          </section>
+
+          <!-- Debug JSON -->
+          <section class="panel debug-panel">
+            <details>
+              <summary>Debug JSON</summary>
+              <pre id="screen"></pre>
+            </details>
+          </section>
+        </main>
+
+        <footer class="sidebar-footer">
+          <p>~ Metropolia Flight Game ~</p>
+        </footer>
+      </aside>
+
+      <!-- RIGHT: map -->
+      <section class="map-wrapper">
+        <div id="map"></div>
+
+        <div class="legend">
+          <span class="legend-item">
+            <span class="dot current"></span> Current
+          </span>
+          <span class="legend-item">
+            <span class="dot target"></span> Target
+          </span>
+          <span class="legend-item">
+            <span class="line optimal"></span> Optimal route
+          </span>
+          <span class="legend-item">
+            <span class="line direct"></span> Direct line
+          </span>
+          <span class="legend-item">
+            <span class="line option"></span> Options
+          </span>
+        </div>
+
+        <!-- Start overlay -->
+        <div id="startOverlay" class="start-overlay">
+          <div class="start-card">
+            <h2>Welcome, pilot</h2>
+            <p>
+              Start from Helsinki-Vantaa, choose your next airports and try to
+              reach the quest target using as little fuel as possible.
+            </p>
+            <ul>
+              <li>Press <strong>Start game</strong> to begin.</li>
+              <li>Use <strong>Nearest airports</strong> to pick next hop.</li>
+              <li>Watch fuel, distance and points on the left.</li>
+            </ul>
+            <button class="start-button" onclick="startGame()">
+              Start new flight
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
   </body>
 </html>

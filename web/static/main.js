@@ -3,6 +3,8 @@ let markerLayer;
 let optionsLayer;
 let routeLayer;
 let pathLayer;
+let showOptimalRoute = false;
+let gameStarted = false;
 
 let currentStatus = null;
 let visitedAirports = [];
@@ -234,6 +236,27 @@ function updateMarkersFromStatus(status) {
   }
 }
 
+function updateControlsUI() {
+  const startBtn = document.getElementById("startBtn");
+  const statusBtn = document.getElementById("statusBtn");
+  const optionsBtn = document.getElementById("optionsBtn");
+  const routeBtn = document.getElementById("routeBtn");
+
+  if (!gameStarted) {
+    // Only show Start button
+    startBtn.textContent = "Start game";
+    statusBtn.style.display = "none";
+    optionsBtn.style.display = "none";
+    routeBtn.style.display = "none";
+  } else {
+    // Show everything + rename Start → Restart
+    startBtn.textContent = "Restart game";
+    statusBtn.style.display = "inline-block";
+    optionsBtn.style.display = "inline-block";
+    routeBtn.style.display = "inline-block";
+  }
+}
+
 function drawOptionsOnMap(status, options) {
   if (!map) return;
   clearLayer(optionsLayer);
@@ -360,6 +383,11 @@ function applyStatus(status) {
 async function startGame() {
   initMap();
   hideStartOverlay();
+  gameStarted = true;
+  updateControlsUI();
+  showOptimalRoute = false;
+  clearLayer(routeLayer);
+  updateRouteButton();
 
   const data = await api("/start");
   logJson("START", data);
@@ -368,7 +396,6 @@ async function startGame() {
   visitedAirports = [];
   applyStatus(data.game);
   await fetchOptions();
-  await fetchRoute();
 }
 
 async function fetchStatus() {
@@ -388,11 +415,12 @@ async function pickOption(index) {
 
   applyStatus(data.status);
   await fetchOptions();
-  await fetchRoute();
 }
 
 async function fetchRoute() {
   if (!currentStatus || currentStatus.error) return;
+  if (!showOptimalRoute) return;
+
   initMap();
   const data = await api("/route");
   logJson("ROUTE", data);
@@ -401,8 +429,26 @@ async function fetchRoute() {
   }
 }
 
+function updateRouteButton() {
+  const btn = document.getElementById("routeBtn");
+  if (!btn) return;
+
+  btn.textContent = showOptimalRoute
+    ? "Hide optimal route"
+    : "Show optimal route";
+}
+
 function showRoute() {
+  showOptimalRoute = !showOptimalRoute
+
+  updateRouteButton();
+
+    clearLayer(routeLayer);
+
+  if(showOptimalRoute)
+  {
   fetchRoute();
+  }
 }
 
 window.startGame = startGame;
@@ -414,4 +460,5 @@ window.showRoute = showRoute;
 document.addEventListener("DOMContentLoaded", () => {
   initMap();
   showStartOverlay();
+  updateControlsUI();
 });
